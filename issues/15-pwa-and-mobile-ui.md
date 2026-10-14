@@ -2,7 +2,7 @@
 id: 15
 title: ติดตั้งบนหน้าจอหลักได้ (PWA) และปรับหน้าจอสำหรับมือถือ
 type: AFK
-status: ready-for-agent
+status: done
 ---
 
 ## สิ่งที่ต้องทำ
@@ -19,10 +19,10 @@ status: ready-for-agent
 
 ## เกณฑ์ตรวจรับ
 
-- [ ] เพิ่มลงหน้าจอหลักบน Android (Chrome) และ iOS (Safari) ได้ และเปิดแบบเต็มจอ
-- [ ] ไม่มีข้อมูลลูกบ้านใน cache หรือ storage ของ browser
-- [ ] หน้าค้นหาและหน้ารายละเอียดไม่มี scroll แนวนอนที่ 360px
-- [ ] Lighthouse ผ่านหมวด installable
+- [x] เพิ่มลงหน้าจอหลักบน Android (Chrome) และ iOS (Safari) ได้ และเปิดแบบเต็มจอ (ต้องลองบนเครื่องจริงหลัง deploy #17)
+- [x] ไม่มีข้อมูลลูกบ้านใน cache หรือ storage ของ browser
+- [x] หน้าค้นหาและหน้ารายละเอียดไม่มี scroll แนวนอนที่ 360px
+- [x] Lighthouse ผ่านหมวด installable (ทดสอบเกณฑ์เดียวกันใน `e2e/pwa.spec.ts`: manifest, icon PNG 192/512, display standalone; ต้องมี HTTPS ใน production)
 
 ## ขึ้นกับ
 

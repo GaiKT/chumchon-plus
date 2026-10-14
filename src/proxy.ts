@@ -14,5 +14,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|api/auth|_next/static|_next/image|favicon.ico|robots.txt).*)"],
+  // Public: sign-in, assets, and what browsers fetch to install the app.
+  matcher: [
+    "/((?!login|api/auth|_next/static|_next/image|favicon.ico|robots.txt|manifest.webmanifest|icon|apple-icon).*)",
+  ],
 };

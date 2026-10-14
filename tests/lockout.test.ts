@@ -50,9 +50,11 @@ describe.skipIf(!hasDb)("sign-in lockout", () => {
     expect(await attempt(password)).toBe(429);
 
     const [row] = await owner.select().from(users).where(eq(users.username, username));
+    // lockedUntil comes from the database clock, which may differ slightly
+    // from this machine's.
     const minutes = (row.lockedUntil!.getTime() - Date.now()) / 60_000;
-    expect(minutes).toBeGreaterThan(14);
-    expect(minutes).toBeLessThanOrEqual(15);
+    expect(minutes).toBeGreaterThan(14.5);
+    expect(minutes).toBeLessThan(15.5);
   });
 
   it("starts counting again after a successful sign-in", async () => {

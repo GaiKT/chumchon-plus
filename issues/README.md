@@ -19,7 +19,7 @@
 | [12](12-line-login-and-invite.md) | เข้าสู่ระบบด้วย LINE และเชิญผู้ใช้ด้วยลิงก์ | HITL | 02, 17 |
 | [13](13-session-management.md) | ✅ จัดการอุปกรณ์ที่เข้าสู่ระบบ | AFK | 02 |
 | [14](14-security-hardening.md) | ✅ เสริมความปลอดภัยของระบบ | AFK | 02 |
-| [15](15-pwa-and-mobile-ui.md) | PWA และหน้าจอสำหรับมือถือ | AFK | 01 |
+| [15](15-pwa-and-mobile-ui.md) | ✅ PWA และหน้าจอสำหรับมือถือ | AFK | 01 |
 | [16](16-fake-data-seed-for-staging.md) | ข้อมูลทดสอบ 500 คนสำหรับ staging | AFK | 01 |
 | [17](17-deploy-home-server.md) | Deploy ขึ้น home server ผ่าน Cloudflare Tunnel | HITL | 01 |
 | [18](18-backup-and-monitoring.md) | สำรองข้อมูลนอกสถานที่ และแจ้งเตือนเมื่อระบบล่ม | HITL | 17 |

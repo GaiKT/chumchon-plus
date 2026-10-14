@@ -50,7 +50,7 @@ export function CopyButton({
             () => setStatus("failed"),
           )
         }
-        className={`min-h-11 min-w-11 rounded border border-gray-300 px-3 text-sm text-gray-700 active:bg-gray-100 ${className}`}
+        className={`min-h-11 min-w-11 shrink-0 rounded border border-gray-300 px-3 text-sm whitespace-nowrap text-gray-700 active:bg-gray-100 ${className}`}
       >
         {children}
       </button>
