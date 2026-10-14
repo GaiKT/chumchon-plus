@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ageFromBirthDate } from "@/lib/age";
 import { formatCopyText, type CopyAddress } from "@/lib/copy-text";
@@ -90,13 +91,22 @@ function MemberCard({
           </>
         )}
       </dl>
-      <CopyButton
-        text={formatCopyText(member, address)}
-        label={`คัดลอกข้อมูลทั้งหมดของ ${fullName(member)}`}
-        className="mt-3 w-full"
-      >
-        คัดลอกทั้งหมด
-      </CopyButton>
+      <div className="mt-3 flex gap-2">
+        <CopyButton
+          text={formatCopyText(member, address)}
+          label={`คัดลอกข้อมูลทั้งหมดของ ${fullName(member)}`}
+          className="flex-1"
+        >
+          คัดลอกทั้งหมด
+        </CopyButton>
+        <Link
+          href={`/persons/${member.id}/edit`}
+          aria-label={`แก้ไขข้อมูล ${fullName(member)}`}
+          className="flex min-h-11 items-center rounded border border-gray-300 px-4 text-sm text-gray-700"
+        >
+          แก้ไข
+        </Link>
+      </div>
     </li>
   );
 }
@@ -124,6 +134,9 @@ export default async function HouseholdPage({ params, searchParams }: PageProps<
           </CopyButton>
         </div>
         {household.zone && <p className="text-gray-700">{household.zone}</p>}
+        <Link href={`/households/${household.id}/edit`} className="inline-block py-2 text-blue-700 underline">
+          แก้ไขข้อมูลบ้าน
+        </Link>
         {household.note && <p className="mt-1 text-gray-700">หมายเหตุ: {household.note}</p>}
       </header>
 

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { householdIdOf } from "./db-fixtures";
+import { householdIdOf, personIdOf } from "./db-fixtures";
 import { E2E } from "./fixtures";
 import { signIn } from "./helpers";
 
@@ -44,4 +44,12 @@ test("another village's household URL returns 404", async ({ page }) => {
 test("a malformed household id returns 404", async ({ page }) => {
   const response = await page.goto("/households/not-a-uuid");
   expect(response?.status()).toBe(404);
+});
+
+test("another village's edit pages return 404", async ({ page }) => {
+  const householdId = await householdIdOf(E2E.otherResident);
+  const personId = await personIdOf(E2E.otherResident);
+  expect((await page.goto(`/households/${householdId}/edit`))?.status()).toBe(404);
+  expect((await page.goto(`/persons/${personId}/edit`))?.status()).toBe(404);
+  await expect(page.getByText(E2E.otherResident.firstName)).toHaveCount(0);
 });

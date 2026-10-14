@@ -5,6 +5,7 @@ import {
   date,
   foreignKey,
   index,
+  jsonb,
   pgEnum,
   pgPolicy,
   pgTable,
@@ -122,6 +123,35 @@ export const persons = pgTable(
     index("persons_last_name_trgm_idx").using("gin", t.lastName.op("gin_trgm_ops")),
     index("persons_nickname_trgm_idx").using("gin", t.nickname.op("gin_trgm_ops")),
     tenantIsolation("persons", "village_id"),
+  ],
+);
+
+export const auditAction = pgEnum("audit_action", ["create", "update", "delete", "restore"]);
+
+/**
+ * Append-only history of every change to resident data. The app role may
+ * insert and read rows but not update or delete them (see migration 0003).
+ */
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    villageId: uuid()
+      .notNull()
+      .references(() => villages.id),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id),
+    action: auditAction().notNull(),
+    tableName: text().notNull(),
+    recordId: uuid().notNull(),
+    /** Changed fields only: { field: [old, new] }. */
+    changes: jsonb().$type<Record<string, [unknown, unknown]>>().notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t): PgTableExtraConfigValue[] => [
+    index("audit_logs_record_idx").on(t.tableName, t.recordId),
+    tenantIsolation("audit_logs", "village_id"),
   ],
 );
 

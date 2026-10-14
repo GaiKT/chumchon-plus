@@ -22,6 +22,13 @@
       "when": 1791989275238,
       "tag": "0002_tense_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791989941674,
+      "tag": "0003_late_black_tarantula",
+      "breakpoints": true
     }
   ]
 }

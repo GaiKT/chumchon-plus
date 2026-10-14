@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { createOwnerDb } from "@/db";
-import { households, persons, users, villages } from "@/db/schema";
+import { auditLogs, households, persons, users, villages } from "@/db/schema";
 import { createUser } from "@/lib/users";
 import { E2E, E2E_PASSWORD } from "./fixtures";
 
@@ -10,10 +10,13 @@ const villageNames = [E2E.villageName, E2E.otherVillageName];
 export async function removeFixtures() {
   const db = createOwnerDb();
   try {
-    await db.delete(users).where(inArray(users.username, usernames));
     const ids = (
       await db.select({ id: villages.id }).from(villages).where(inArray(villages.name, villageNames))
     ).map((v) => v.id);
+    if (ids.length > 0) {
+      await db.delete(auditLogs).where(inArray(auditLogs.villageId, ids));
+    }
+    await db.delete(users).where(inArray(users.username, usernames));
     if (ids.length > 0) {
       await db.update(households).set({ headPersonId: null }).where(inArray(households.villageId, ids));
       await db.delete(persons).where(inArray(persons.villageId, ids));
@@ -69,6 +72,20 @@ export async function householdIdOf(resident: { firstName: string; lastName: str
       .from(persons)
       .where(and(eq(persons.firstName, resident.firstName), eq(persons.lastName, resident.lastName)));
     return row.householdId;
+  } finally {
+    await db.$client.end();
+  }
+}
+
+/** Person id of a fixture resident, looked up as the owner (bypasses RLS). */
+export async function personIdOf(resident: { firstName: string; lastName: string }) {
+  const db = createOwnerDb();
+  try {
+    const [row] = await db
+      .select({ id: persons.id })
+      .from(persons)
+      .where(and(eq(persons.firstName, resident.firstName), eq(persons.lastName, resident.lastName)));
+    return row.id;
   } finally {
     await db.$client.end();
   }

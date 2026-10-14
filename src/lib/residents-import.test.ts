@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  groupIntoHouseholds,
-  normalizePhone,
-  parseBirthDate,
-  parseResidentsCsv,
-} from "./residents-import";
+import { normalizePhone, parseBirthDate } from "./resident-fields";
+import { groupIntoHouseholds, parseResidentsCsv } from "./residents-import";
 
 const HEADER =
   "บ้านเลขที่,คุ้ม/ซอย,คำนำหน้า,ชื่อ,นามสกุล,ชื่อเล่น,ความสัมพันธ์กับหัวหน้าครัวเรือน,วันเกิด,เบอร์โทร,หมายเหตุ";
