@@ -30,5 +30,7 @@ test("a superadmin cannot see resident data", async ({ page }) => {
   await signIn(page, E2E.superadmin.username);
 
   await expect(page.getByText("บัญชีผู้ดูแลระบบไม่สามารถดูข้อมูลลูกบ้านได้")).toBeVisible();
+  await page.goto(`/?q=${encodeURIComponent(E2E.resident.firstName)}`);
+  await expect(page.getByText("บัญชีผู้ดูแลระบบไม่สามารถดูข้อมูลลูกบ้านได้")).toBeVisible();
   await expect(page.getByText(E2E.resident.firstName)).toHaveCount(0);
 });

@@ -40,5 +40,10 @@ Fill in [templates/residents-template.csv](templates/residents-template.csv) (on
 pnpm typecheck
 pnpm lint
 pnpm test        # includes RLS and auth integration tests when the database is running
-pnpm test:e2e    # Playwright; reuses the app on :3000 or starts `pnpm dev`
+pnpm test:e2e    # Playwright; reuses whatever serves :3000, else starts `pnpm dev`
+```
+
+Stop or rebuild the Docker `app` container before `pnpm test:e2e`, otherwise the tests run against its stale build.
+
+```sh
 ```

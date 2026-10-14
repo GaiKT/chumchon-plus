@@ -1,48 +1,54 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
 import { Suspense } from "react";
-import { withVillage } from "@/db";
-import { households, persons } from "@/db/schema";
+import { ageFromBirthDate } from "@/lib/age";
+import { searchResidents, type ResidentSearchResult } from "@/lib/residents";
+import { MIN_QUERY_LENGTH, parseQuery } from "@/lib/search-query";
 import { getCurrentUser, getVillageUser } from "@/lib/session";
 import { signOut } from "./actions";
+import { SearchBox, SearchBoxFallback } from "./search-box";
+
+function ResidentCard({ resident }: { resident: ResidentSearchResult }) {
+  const age = ageFromBirthDate(resident.birthDate);
+  return (
+    <li className="rounded-lg border border-gray-200 p-4">
+      <p className="text-lg font-medium">
+        {resident.title}
+        {resident.firstName} {resident.lastName}
+        {resident.nickname && <span className="text-gray-600"> ({resident.nickname})</span>}
+      </p>
+      <p className="text-gray-600">
+        บ้านเลขที่ {resident.houseNo}
+        {age !== null && ` · อายุ ${age} ปี`}
+      </p>
+    </li>
+  );
+}
 
 // Resident data is personal data: never wrap it in "use cache".
-async function ResidentList() {
+async function SearchResults({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   const user = await getVillageUser();
   if (!user) {
     return <p>บัญชีผู้ดูแลระบบไม่สามารถดูข้อมูลลูกบ้านได้</p>;
   }
 
-  const residents = await withVillage(user.villageId, (tx) =>
-    tx
-      .select({
-        id: persons.id,
-        title: persons.title,
-        firstName: persons.firstName,
-        lastName: persons.lastName,
-        nickname: persons.nickname,
-        houseNo: households.houseNo,
-      })
-      .from(persons)
-      .innerJoin(households, eq(persons.householdId, households.id))
-      .where(and(isNull(persons.deletedAt), isNull(households.deletedAt)))
-      .orderBy(asc(households.houseNo), asc(persons.firstName)),
-  );
+  const { q } = await searchParams;
+  const query = parseQuery(typeof q === "string" ? q : undefined);
+  if (query.kind !== "name") {
+    return (
+      <p className="text-gray-600">
+        พิมพ์ชื่อ นามสกุล หรือชื่อเล่น อย่างน้อย {MIN_QUERY_LENGTH} ตัวอักษร
+      </p>
+    );
+  }
 
+  const residents = await searchResidents(user.villageId, query);
   if (residents.length === 0) {
-    return <p>ยังไม่มีข้อมูลลูกบ้าน</p>;
+    return <p className="text-gray-600">ไม่พบลูกบ้านที่ตรงกับคำค้น</p>;
   }
 
   return (
-    <ul className="divide-y divide-gray-200">
+    <ul aria-label="ผลการค้นหา" className="flex flex-col gap-3">
       {residents.map((r) => (
-        <li key={r.id} className="py-3">
-          <p className="font-medium">
-            {r.title}
-            {r.firstName} {r.lastName}
-            {r.nickname && ` (${r.nickname})`}
-          </p>
-          <p className="text-sm text-gray-600">บ้านเลขที่ {r.houseNo}</p>
-        </li>
+        <ResidentCard key={r.id} resident={r} />
       ))}
     </ul>
   );
@@ -62,15 +68,18 @@ async function AccountBar() {
   );
 }
 
-export default function Home() {
+export default function Home({ searchParams }: PageProps<"/">) {
   return (
-    <main className="mx-auto w-full max-w-xl p-4">
+    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
       <Suspense fallback={<div className="h-5" />}>
         <AccountBar />
       </Suspense>
-      <h1 className="my-4 text-xl font-semibold">รายชื่อลูกบ้าน</h1>
-      <Suspense fallback={<p>กำลังโหลดข้อมูล...</p>}>
-        <ResidentList />
+      <h1 className="text-xl font-semibold">ค้นหาลูกบ้าน</h1>
+      <Suspense fallback={<SearchBoxFallback />}>
+        <SearchBox />
+      </Suspense>
+      <Suspense fallback={<p className="text-gray-600">กำลังโหลดข้อมูล...</p>}>
+        <SearchResults searchParams={searchParams} />
       </Suspense>
     </main>
   );
