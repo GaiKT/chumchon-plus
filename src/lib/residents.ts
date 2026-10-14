@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, ilike, isNull, like, or, sql, type SQL } from "drizzle-orm";
 import { withVillage } from "@/db";
 import { households, persons } from "@/db/schema";
-import { escapeLike, MAX_RESULTS, type ParsedQuery } from "./search-query";
+import { escapeLike, FUZZY_THRESHOLD, MAX_RESULTS, type ParsedQuery } from "./search-query";
 
 export type ResidentSearchResult = {
   id: string;
@@ -14,17 +14,48 @@ export type ResidentSearchResult = {
   birthDate: string | null;
 };
 
-/** Every token must match the first name, last name or nickname. */
+const nameColumns = [persons.firstName, persons.lastName, persons.nickname];
+
+function anyName(match: (column: (typeof nameColumns)[number]) => SQL): SQL {
+  return or(...nameColumns.map(match))!;
+}
+
+/** Best pg_trgm word similarity of the token to any name column. */
+function bestSimilarity(token: string): SQL {
+  return sql`greatest(${sql.join(
+    nameColumns.map((c) => sql`word_similarity(${token}, coalesce(${c}, ''))`),
+    sql`, `,
+  )})`;
+}
+
+/**
+ * Every token must match the first name, last name or nickname, either as
+ * a substring or, to tolerate typos, by trigram similarity. Results rank
+ * exact matches first, then prefix, substring and finally typo matches.
+ */
 function nameSearch(tokens: string[]): { where: SQL[]; orderBy: SQL[] } {
-  const where = tokens.map((token) => {
-    const pattern = `%${escapeLike(token)}%`;
-    return or(
-      ilike(persons.firstName, pattern),
-      ilike(persons.lastName, pattern),
-      ilike(persons.nickname, pattern),
-    )!;
-  });
-  return { where, orderBy: [asc(persons.firstName), asc(persons.lastName)] };
+  const where = tokens.map((token) =>
+    or(
+      anyName((c) => ilike(c, `%${escapeLike(token)}%`)),
+      sql`${bestSimilarity(token)} >= ${FUZZY_THRESHOLD}`,
+    )!,
+  );
+
+  const tier = (token: string) => sql`case
+    when ${anyName((c) => sql`${c} = ${token}`)} then 0
+    when ${anyName((c) => ilike(c, `${escapeLike(token)}%`))} then 1
+    when ${anyName((c) => ilike(c, `%${escapeLike(token)}%`))} then 2
+    else 3 end`;
+
+  return {
+    where,
+    orderBy: [
+      asc(sql.join(tokens.map(tier), sql` + `)),
+      desc(sql.join(tokens.map(bestSimilarity), sql` + `)),
+      asc(persons.firstName),
+      asc(persons.lastName),
+    ],
+  };
 }
 
 /** House numbers starting with the prefix; an exact match comes first. */

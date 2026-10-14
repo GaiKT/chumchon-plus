@@ -7,6 +7,10 @@ import { parseQuery } from "@/lib/search-query";
 
 const hasDb = Boolean(process.env.DATABASE_URL && process.env.MIGRATION_DATABASE_URL);
 
+afterAll(async () => {
+  if (hasDb) await getDb().$client.end();
+});
+
 describe.skipIf(!hasDb)("searchResidents", () => {
   let owner: Db;
   let villageId: string;
@@ -50,7 +54,6 @@ describe.skipIf(!hasDb)("searchResidents", () => {
     await owner.delete(households).where(eq(households.villageId, villageId));
     await owner.delete(villages).where(eq(villages.id, villageId));
     await owner.$client.end();
-    await getDb().$client.end();
   });
 
   it("matches first name, last name and nickname", async () => {
@@ -91,8 +94,68 @@ describe.skipIf(!hasDb)("searchResidents", () => {
     expect(await houses("9")).toEqual([]);
   });
 
+  it("tolerates a one-character typo", async () => {
+    expect(await names("สมชาญ")).toContain("สมชาย");
+  });
+
+  it("ranks exact, then prefix, then substring, then typo matches", async () => {
+    // "ใจดี" is an exact last name; "ใจ" is a prefix; "ดี" a substring.
+    expect((await names("ใจดี")).slice(0, 2)).toEqual(["สมชาย", "สมศรี"]);
+    const typo = await names("สมชาญ");
+    expect(typo[0]).toBe("สมชาย");
+  });
+
+  it("does not match unrelated names by similarity", async () => {
+    expect(await names("ประเสริฐ")).toEqual([]);
+  });
+
   it("returns the house number and birth date fields", async () => {
     const [result] = await searchResidents(villageId, parseQuery("แดง"));
     expect(result).toMatchObject({ houseNo: "12/1", nickname: "แดง", title: "นาย" });
+  });
+});
+
+describe.skipIf(!hasDb)("searchResidents performance", () => {
+  let owner: Db;
+  let villageId: string;
+  const firstNames = ["สมชาย", "สมศรี", "ประเสริฐ", "บุญมา", "มะลิ", "สุดา", "วิชัย", "อำนวย", "จันทร์เพ็ญ", "ทองดี"];
+  const lastNames = ["ใจดี", "สุขใจ", "รักถิ่น", "มั่นคง", "ศรีสุข", "บุญเรือง", "แก้วมณี", "ทองคำ", "พรมมา", "สายบุญ"];
+
+  beforeAll(async () => {
+    owner = createOwnerDb();
+    const [village] = await owner
+      .insert(villages)
+      .values({ name: "search-perf-test", mooNo: "1", subdistrict: "ท", district: "ท", province: "ท" })
+      .returning({ id: villages.id });
+    villageId = village.id;
+    const houses = await owner
+      .insert(households)
+      .values(Array.from({ length: 150 }, (_, i) => ({ villageId, houseNo: String(i + 1) })))
+      .returning({ id: households.id });
+    await owner.insert(persons).values(
+      Array.from({ length: 500 }, (_, i) => ({
+        villageId,
+        householdId: houses[i % houses.length].id,
+        firstName: `${firstNames[i % 10]}${i}`,
+        lastName: lastNames[Math.floor(i / 10) % 10],
+        nickname: i % 3 === 0 ? `เล่น${i}` : null,
+      })),
+    );
+  });
+
+  afterAll(async () => {
+    await owner.delete(persons).where(eq(persons.villageId, villageId));
+    await owner.delete(households).where(eq(households.villageId, villageId));
+    await owner.delete(villages).where(eq(villages.id, villageId));
+    await owner.$client.end();
+  });
+
+  it("answers within 300ms on 500 residents", async () => {
+    await searchResidents(villageId, parseQuery("สมชาย")); // warm up the connection
+    for (const raw of ["สมชาญ", "ใจดี", "สม ใจ", "12"]) {
+      const start = performance.now();
+      await searchResidents(villageId, parseQuery(raw));
+      expect(performance.now() - start).toBeLessThan(300);
+    }
   });
 });

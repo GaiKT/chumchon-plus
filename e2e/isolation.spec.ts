@@ -16,8 +16,13 @@ test("search finds only the user's own village", async ({ page }) => {
   await expect(results.getByText(E2E.resident.firstName)).toBeVisible();
   await expect(results.getByRole("listitem")).toHaveCount(1);
 
+  // Typo tolerance may surface similar names from the user's own village,
+  // but never the other village's resident.
   await page.getByLabel("ค้นหาลูกบ้าน").fill(E2E.otherResident.firstName);
-  await expect(page.getByText("ไม่พบลูกบ้านที่ตรงกับคำค้น")).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`q=${encodeURIComponent(E2E.otherResident.firstName)}`));
+  await expect(page.getByText("กำลังค้นหา...")).toHaveCount(0);
+  await expect(page.getByText(E2E.otherResident.firstName)).toHaveCount(0);
+  await expect(page.getByText(E2E.otherResident.lastName)).toHaveCount(0);
 });
 
 test("house number search finds only the user's own village", async ({ page }) => {

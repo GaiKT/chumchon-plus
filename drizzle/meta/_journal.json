@@ -15,6 +15,13 @@
       "when": 1791988313990,
       "tag": "0001_talented_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791989275238,
+      "tag": "0002_tense_legion",
+      "breakpoints": true
     }
   ]
 }

@@ -67,6 +67,7 @@ export const households = pgTable(
     ...timestamps,
   },
   (t): PgTableExtraConfigValue[] => [
+    index("households_house_no_pattern_idx").on(t.houseNo.op("text_pattern_ops")),
     uniqueIndex("households_village_house_no_key")
       .on(t.villageId, t.houseNo)
       .where(sql`${t.deletedAt} is null`),
@@ -116,6 +117,10 @@ export const persons = pgTable(
       foreignColumns: [households.villageId, households.id],
     }),
     index("persons_household_id_idx").on(t.householdId),
+    // Speed up substring (ILIKE '%x%') name searches.
+    index("persons_first_name_trgm_idx").using("gin", t.firstName.op("gin_trgm_ops")),
+    index("persons_last_name_trgm_idx").using("gin", t.lastName.op("gin_trgm_ops")),
+    index("persons_nickname_trgm_idx").using("gin", t.nickname.op("gin_trgm_ops")),
     tenantIsolation("persons", "village_id"),
   ],
 );

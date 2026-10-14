@@ -2,6 +2,13 @@ export const MIN_QUERY_LENGTH = 2;
 export const MAX_QUERY_LENGTH = 100;
 export const MAX_RESULTS = 20;
 
+/**
+ * Minimum pg_trgm word_similarity for a typo match. One wrong character in
+ * a five-character Thai name scores about 0.5 (สมชาย vs สมชาญ). Lower values
+ * find more typos but also more unrelated names.
+ */
+export const FUZZY_THRESHOLD = 0.4;
+
 // Longest first, so "นางสาว" is stripped before "นาง".
 const TITLE_PREFIXES = [
   "เด็กหญิง",
