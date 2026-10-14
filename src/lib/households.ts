@@ -1,7 +1,7 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { withVillage } from "@/db";
-import { households, persons } from "@/db/schema";
+import { households, persons, villages } from "@/db/schema";
 
 export type HouseholdMember = {
   id: string;
@@ -22,6 +22,7 @@ export type HouseholdDetail = {
   houseNo: string;
   zone: string | null;
   note: string | null;
+  village: { mooNo: string; subdistrict: string };
   residents: HouseholdMember[];
   former: HouseholdMember[];
 };
@@ -46,6 +47,11 @@ export async function getHousehold(villageId: string, id: string): Promise<House
       .from(households)
       .where(and(eq(households.id, id), isNull(households.deletedAt)));
     if (!household) return null;
+
+    const [village] = await tx
+      .select({ mooNo: villages.mooNo, subdistrict: villages.subdistrict })
+      .from(villages)
+      .where(eq(villages.id, villageId));
 
     const rows = await tx
       .select({
@@ -73,6 +79,7 @@ export async function getHousehold(villageId: string, id: string): Promise<House
       houseNo: household.houseNo,
       zone: household.zone,
       note: household.note,
+      village,
       residents: members.filter((m) => m.status === "resident"),
       former: members.filter((m) => m.status !== "resident"),
     };
