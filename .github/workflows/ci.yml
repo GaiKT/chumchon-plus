@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      OWNER_DB_PASSWORD: ci-owner
+      APP_DB_PASSWORD: ci-app
+      DATABASE_URL: postgres://chumchon_app:ci-app@localhost:5432/chumchon
+      MIGRATION_DATABASE_URL: postgres://chumchon_owner:ci-owner@localhost:5432/chumchon
+      BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Same database image and init script as local development, so the
+      # restricted app role and row-level security are tested for real.
+      - run: docker compose up -d --wait db
+      - run: pnpm db:migrate
+
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: test-results/

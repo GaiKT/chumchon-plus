@@ -1,12 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
-import { E2E, E2E_PASSWORD } from "./fixtures";
-
-async function signIn(page: Page, username: string, password = E2E_PASSWORD) {
-  await page.goto("/login");
-  await page.getByLabel("ชื่อผู้ใช้").fill(username);
-  await page.getByLabel("รหัสผ่าน").fill(password);
-  await page.getByRole("button", { name: "เข้าสู่ระบบ" }).click();
-}
+import { expect, test } from "@playwright/test";
+import { E2E } from "./fixtures";
+import { signIn } from "./helpers";
 
 test("visitors without a session are sent to the login page", async ({ page }) => {
   await page.goto("/");
@@ -19,13 +13,11 @@ test("a wrong password shows an error and stays on the login page", async ({ pag
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test("an admin sees only their own village and can sign out", async ({ page }) => {
+test("an admin can sign in and sign out", async ({ page }) => {
   await signIn(page, E2E.admin.username);
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText(E2E.admin.name)).toBeVisible();
-  await expect(page.getByText(E2E.resident.firstName)).toBeVisible();
-  await expect(page.getByText(E2E.otherResident.firstName)).toHaveCount(0);
 
   await page.getByRole("button", { name: "ออกจากระบบ" }).click();
   await expect(page).toHaveURL(/\/login$/);

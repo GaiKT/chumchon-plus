@@ -11,8 +11,10 @@ export default defineConfig({
   workers: 1,
   use: { baseURL, trace: "retain-on-failure" },
   projects: [{ name: "mobile", use: { ...devices["Pixel 7"] } }],
+  forbidOnly: Boolean(process.env.CI),
   webServer: {
-    command: "pnpm dev",
+    // CI tests the production build; locally reuse whatever runs on :3000.
+    command: process.env.CI ? "pnpm start:standalone" : "pnpm dev",
     url: baseURL,
     reuseExistingServer: true,
   },

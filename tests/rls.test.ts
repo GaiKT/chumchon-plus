@@ -1,7 +1,7 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createOwnerDb, getDb, withVillage, type Db } from "@/db";
-import { households, villages } from "@/db/schema";
+import { households, persons, villages } from "@/db/schema";
 
 // Integration test against the database from docker compose.
 // Requires DATABASE_URL and MIGRATION_DATABASE_URL (see .env.example).
@@ -63,6 +63,23 @@ describe.skipIf(!hasDb)("row-level security", () => {
       withVillage(villageA, (tx) =>
         tx.insert(households).values({ villageId: villageB, houseNo: "2" }),
       ),
+    ).rejects.toThrow();
+  });
+
+  it("rejects linking a person to another village's household", async () => {
+    const [householdB] = await owner
+      .select({ id: households.id })
+      .from(households)
+      .where(eq(households.villageId, villageB));
+
+    // Even the owner, which bypasses RLS, is stopped by the composite foreign key.
+    await expect(
+      owner.insert(persons).values({
+        villageId: villageA,
+        householdId: householdB.id,
+        firstName: "ข้าม",
+        lastName: "หมู่บ้าน",
+      }),
     ).rejects.toThrow();
   });
 

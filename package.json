@@ -14,7 +14,9 @@
     "village:create": "tsx scripts/create-village.ts",
     "seed:residents": "tsx scripts/seed-residents.ts",
     "user:create": "tsx scripts/create-user.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e",
+    "start:standalone": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js"
   },
   "dependencies": {
     "better-auth": "^1.7.7",
