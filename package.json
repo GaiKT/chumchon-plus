@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e",
     "start:standalone": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
-    "purge:deleted": "tsx scripts/purge-deleted.ts"
+    "purge:deleted": "tsx scripts/purge-deleted.ts",
+    "seed:fake": "tsx scripts/seed-fake.ts"
   },
   "dependencies": {
     "better-auth": "^1.7.7",

@@ -2,7 +2,7 @@
 id: 16
 title: สร้างข้อมูลทดสอบ 500 คนสำหรับ staging
 type: AFK
-status: ready-for-agent
+status: done
 ---
 
 ## สิ่งที่ต้องทำ
@@ -18,9 +18,9 @@ status: ready-for-agent
 
 ## เกณฑ์ตรวจรับ
 
-- [ ] รัน script แล้วได้ข้อมูลประมาณ 500 คนในหมู่บ้านทดสอบ
-- [ ] มีชื่อซ้ำ ชื่อคล้าย และ status หลากหลาย
-- [ ] script ปฏิเสธการรันกับ production
+- [x] รัน script แล้วได้ข้อมูลประมาณ 500 คนในหมู่บ้านทดสอบ
+- [x] มีชื่อซ้ำ ชื่อคล้าย และ status หลากหลาย
+- [x] script ปฏิเสธการรันกับ production (ยอมรันเฉพาะเมื่อ `APP_ENV` เป็น `development` หรือ `staging` และ production ต้องตั้ง `APP_ENV=production` ใน #17)
 
 ## ขึ้นกับ
 

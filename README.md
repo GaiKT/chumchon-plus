@@ -23,6 +23,8 @@ pnpm dev                      # or: docker compose up -d --build app
 
 Sign-in requests must come from the origin in `BETTER_AUTH_URL` (use `http://localhost:3000`, not `127.0.0.1`).
 
+To try search with many residents, `pnpm seed:fake` creates a separate village of 500 fake people (150 households, look-alike names, every status). It refuses to run unless `APP_ENV` is `development` or `staging`.
+
 ## Database access rules
 
 - The app connects as `chumchon_app`, which is subject to row-level security. Every resident query must run inside `withVillage(villageId, tx => ...)`; outside it, queries return no rows.

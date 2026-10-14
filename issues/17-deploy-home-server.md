@@ -22,7 +22,7 @@ status: ready-for-human
 - Docker Compose สำหรับ production มี `app`, `db` และ `cloudflared`
   - `db` ไม่เปิด port ออกนอก Docker network
   - volume ของ `db` แยกชัดเจน
-- แยก env ของ production กับ staging และมีไฟล์ตัวอย่าง env ที่ไม่มีค่าลับ
+- แยก env ของ production กับ staging และมีไฟล์ตัวอย่าง env ที่ไม่มีค่าลับ (production ต้องตั้ง `APP_ENV=production` เพื่อให้ script ข้อมูลปลอมใน #16 ปฏิเสธการรัน)
 - รัน migration อัตโนมัติก่อน start แอป
 - ตั้ง cron รายวันรัน `pnpm purge:deleted` (ลบถาวรข้อมูลที่ถูกลบเกิน 30 วัน จาก #11)
 - staging ใช้ compose ชุดเดียวกัน แต่แยก project, ฐานข้อมูล และ subdomain

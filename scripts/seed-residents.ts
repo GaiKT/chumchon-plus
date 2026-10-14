@@ -1,15 +1,9 @@
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { eq } from "drizzle-orm";
-import { getDb, withVillage } from "@/db";
-import { households, persons } from "@/db/schema";
-import {
-  HEAD_RELATION,
-  groupIntoHouseholds,
-  parseResidentsCsv,
-  type RowError,
-} from "@/lib/residents-import";
+import { getDb } from "@/db";
+import { groupIntoHouseholds, parseResidentsCsv, type RowError } from "@/lib/residents-import";
+import { insertHouseholds } from "@/lib/residents-store";
 
 const usage = "Usage: pnpm seed:residents --village <village-id> <file.csv>";
 
@@ -38,41 +32,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Runs as the restricted role, so row-level security rejects any row
-  // that does not belong to the given village.
-  await withVillage(values.village, async (tx) => {
-    for (const house of imports) {
-      const [household] = await tx
-        .insert(households)
-        .values({ villageId: values.village!, houseNo: house.houseNo, zone: house.zone })
-        .returning({ id: households.id });
-
-      for (const member of house.members) {
-        const [person] = await tx
-          .insert(persons)
-          .values({
-            villageId: values.village!,
-            householdId: household.id,
-            title: member.title,
-            firstName: member.firstName,
-            lastName: member.lastName,
-            nickname: member.nickname,
-            relationToHead: member.relationToHead,
-            birthDate: member.birthDate,
-            phone: member.phone,
-            note: member.note,
-          })
-          .returning({ id: persons.id });
-
-        if (member.relationToHead === HEAD_RELATION) {
-          await tx
-            .update(households)
-            .set({ headPersonId: person.id })
-            .where(eq(households.id, household.id));
-        }
-      }
-    }
-  });
+  await insertHouseholds(values.village, imports);
 
   const total = imports.reduce((n, h) => n + h.members.length, 0);
   console.log(`บันทึกแล้ว ${imports.length} ครัวเรือน ${total} คน`);
