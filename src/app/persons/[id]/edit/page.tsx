@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { fullName } from "@/lib/format";
 import { getPersonForEdit, listHouseholdOptions } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
+import { removePerson } from "../../../delete-actions";
+import { DeleteSection } from "../../../delete-section";
 import { savePerson } from "../../../edit-actions";
 import { PersonForm } from "../../person-form";
 
@@ -27,6 +29,11 @@ export default async function EditPersonPage({ params }: PageProps<"/persons/[id
         households={households}
         successors={successors}
         cancelHref={`/households/${person.householdId}?person=${person.id}`}
+      />
+      <DeleteSection
+        action={removePerson.bind(null, person.id, person.householdId)}
+        confirmText={`${person.firstName} ${person.lastName}`}
+        what="บุคคลนี้"
       />
     </main>
   );

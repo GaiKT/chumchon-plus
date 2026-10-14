@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getHouseholdForEdit } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
+import { removeHousehold } from "../../../delete-actions";
+import { DeleteSection } from "../../../delete-section";
 import { saveHousehold } from "../../../edit-actions";
 import { HouseholdForm } from "../../household-form";
 
@@ -23,6 +25,11 @@ export default async function EditHouseholdPage({ params }: PageProps<"/househol
         initial={household}
         residents={household.residents}
         cancelHref={`/households/${household.id}`}
+      />
+      <DeleteSection
+        action={removeHousehold.bind(null, household.id)}
+        confirmText={household.houseNo}
+        what="บ้านนี้"
       />
     </main>
   );

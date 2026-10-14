@@ -24,6 +24,7 @@ status: ready-for-human
   - volume ของ `db` แยกชัดเจน
 - แยก env ของ production กับ staging และมีไฟล์ตัวอย่าง env ที่ไม่มีค่าลับ
 - รัน migration อัตโนมัติก่อน start แอป
+- ตั้ง cron รายวันรัน `pnpm purge:deleted` (ลบถาวรข้อมูลที่ถูกลบเกิน 30 วัน จาก #11)
 - staging ใช้ compose ชุดเดียวกัน แต่แยก project, ฐานข้อมูล และ subdomain
 - เอกสารขั้นตอน deploy และ rollback สั้นๆ
 

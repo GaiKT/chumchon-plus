@@ -1,7 +1,8 @@
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { withVillage, type Tx } from "@/db";
 import { auditLogs, households, persons } from "@/db/schema";
+import { fullName } from "./format";
 import type { HouseholdFormValues, PersonFormValues } from "./resident-fields";
 
 export type Actor = { id: string; villageId: string };
@@ -274,4 +275,130 @@ export async function listHouseholdOptions(villageId: string) {
       .where(isNull(households.deletedAt))
       .orderBy(asc(households.houseNo)),
   );
+}
+
+/** Deleted records can be restored for this many days, then are purged. */
+export const RESTORE_DAYS = 30;
+
+const restorable = (deletedAt: typeof persons.deletedAt | typeof households.deletedAt) =>
+  and(isNotNull(deletedAt), gte(deletedAt, sql`now() - make_interval(days => ${RESTORE_DAYS})`));
+
+export type DeleteResult = "deleted" | "notFound" | "wrongConfirmation" | "hasResidents";
+
+/**
+ * Soft-deletes a person entered by mistake or twice. The user must type the
+ * person's full name to confirm. Moving out or dying is a status change, not this.
+ */
+export async function deletePerson(actor: Actor, id: string, confirmation: string): Promise<DeleteResult> {
+  if (!isUuid(id)) return "notFound";
+  return withVillage(actor.villageId, async (tx) => {
+    const [person] = await tx
+      .select({ householdId: persons.householdId, title: persons.title, firstName: persons.firstName, lastName: persons.lastName })
+      .from(persons)
+      .where(and(eq(persons.id, id), isNull(persons.deletedAt)));
+    if (!person) return "notFound";
+    if (confirmation.trim() !== fullName({ ...person, title: null })) return "wrongConfirmation";
+
+    const deletedAt = new Date();
+    await tx.update(persons).set({ deletedAt }).where(eq(persons.id, id));
+    const household = await findHousehold(tx, person.householdId);
+    if (household?.headPersonId === id) await setHead(tx, actor, person.householdId, id, null);
+    await recordAudit(tx, actor, {
+      action: "delete",
+      tableName: "persons",
+      recordId: id,
+      changes: { deletedAt: [null, deletedAt.toISOString()] },
+    });
+    return "deleted";
+  });
+}
+
+/** Soft-deletes an empty household; the user must type its house number. */
+export async function deleteHousehold(actor: Actor, id: string, confirmation: string): Promise<DeleteResult> {
+  if (!isUuid(id)) return "notFound";
+  return withVillage(actor.villageId, async (tx) => {
+    const household = await findHousehold(tx, id);
+    if (!household) return "notFound";
+    if (confirmation.trim() !== household.houseNo) return "wrongConfirmation";
+    if ((await residentIds(tx, id)).length > 0) return "hasResidents";
+
+    const deletedAt = new Date();
+    await tx.update(households).set({ deletedAt }).where(eq(households.id, id));
+    await recordAudit(tx, actor, {
+      action: "delete",
+      tableName: "households",
+      recordId: id,
+      changes: { deletedAt: [null, deletedAt.toISOString()] },
+    });
+    return "deleted";
+  });
+}
+
+export type RestoreResult = "restored" | "notFound" | "householdDeleted" | "duplicateHouseNo";
+
+export async function restorePerson(actor: Actor, id: string): Promise<RestoreResult> {
+  if (!isUuid(id)) return "notFound";
+  return withVillage(actor.villageId, async (tx) => {
+    const [person] = await tx
+      .select({ householdId: persons.householdId, deletedAt: persons.deletedAt })
+      .from(persons)
+      .where(and(eq(persons.id, id), restorable(persons.deletedAt)));
+    if (!person) return "notFound";
+    if (!(await findHousehold(tx, person.householdId))) return "householdDeleted";
+
+    await tx.update(persons).set({ deletedAt: null }).where(eq(persons.id, id));
+    await recordAudit(tx, actor, {
+      action: "restore",
+      tableName: "persons",
+      recordId: id,
+      changes: { deletedAt: [person.deletedAt!.toISOString(), null] },
+    });
+    return "restored";
+  });
+}
+
+export async function restoreHousehold(actor: Actor, id: string): Promise<RestoreResult> {
+  if (!isUuid(id)) return "notFound";
+  return withVillage(actor.villageId, async (tx) => {
+    const [household] = await tx
+      .select({ houseNo: households.houseNo, deletedAt: households.deletedAt })
+      .from(households)
+      .where(and(eq(households.id, id), restorable(households.deletedAt)));
+    if (!household) return "notFound";
+    if (await houseNoTaken(tx, household.houseNo)) return "duplicateHouseNo";
+
+    await tx.update(households).set({ deletedAt: null }).where(eq(households.id, id));
+    await recordAudit(tx, actor, {
+      action: "restore",
+      tableName: "households",
+      recordId: id,
+      changes: { deletedAt: [household.deletedAt!.toISOString(), null] },
+    });
+    return "restored";
+  });
+}
+
+/** Records deleted within the restore window, newest first. */
+export async function listDeleted(villageId: string) {
+  return withVillage(villageId, async (tx) => {
+    const deletedPersons = await tx
+      .select({
+        id: persons.id,
+        title: persons.title,
+        firstName: persons.firstName,
+        lastName: persons.lastName,
+        houseNo: households.houseNo,
+        deletedAt: persons.deletedAt,
+      })
+      .from(persons)
+      .innerJoin(households, eq(persons.householdId, households.id))
+      .where(restorable(persons.deletedAt))
+      .orderBy(desc(persons.deletedAt));
+    const deletedHouseholds = await tx
+      .select({ id: households.id, houseNo: households.houseNo, deletedAt: households.deletedAt })
+      .from(households)
+      .where(restorable(households.deletedAt))
+      .orderBy(desc(households.deletedAt));
+    return { persons: deletedPersons, households: deletedHouseholds };
+  });
 }

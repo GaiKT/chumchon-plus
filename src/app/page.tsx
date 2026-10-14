@@ -97,6 +97,9 @@ export default function Home({ searchParams }: PageProps<"/">) {
       <Suspense fallback={<p className="text-gray-600">กำลังโหลดข้อมูล...</p>}>
         <SearchResults searchParams={searchParams} />
       </Suspense>
+      <Link href="/trash" className="mt-8 self-start py-2 text-sm text-gray-600 underline">
+        รายการที่ถูกลบ
+      </Link>
     </main>
   );
 }
