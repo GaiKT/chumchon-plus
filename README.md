@@ -13,17 +13,22 @@ docker compose up -d db       # Postgres 16; creates the restricted app role on 
 pnpm db:migrate               # runs as the owner role
 
 pnpm village:create --name "บ้านทดลอง" --moo 5 --subdistrict "..." --district "..." --province "..."
-# put the printed id in .env as DEV_VILLAGE_ID
+pnpm user:create --role admin --village <village-id> --username phuyai --name "ชื่อ สกุล"
 pnpm seed:residents --village <village-id> templates/residents-example.csv
 
 pnpm dev                      # or: docker compose up -d --build app
 ```
 
+`user:create` prints a generated password once. Use `--role superadmin` (no `--village`) for the developer account, which cannot see resident data.
+
+Sign-in requests must come from the origin in `BETTER_AUTH_URL` (use `http://localhost:3000`, not `127.0.0.1`).
+
 ## Database access rules
 
 - The app connects as `chumchon_app`, which is subject to row-level security. Every resident query must run inside `withVillage(villageId, tx => ...)`; outside it, queries return no rows.
 - `MIGRATION_DATABASE_URL` (table owner, bypasses RLS) is only for migrations and the village management scripts.
-- Never wrap resident data in `"use cache"`.
+- Never wrap resident data in `"use cache"`, and never cache the session: revoking a session must take effect on the next request.
+- Get the village from `getVillageUser()` (src/lib/session.ts), never from the request.
 
 ## Importing residents
 
@@ -34,5 +39,6 @@ Fill in [templates/residents-template.csv](templates/residents-template.csv) (on
 ```sh
 pnpm typecheck
 pnpm lint
-pnpm test        # includes RLS integration tests when the database is running
+pnpm test        # includes RLS and auth integration tests when the database is running
+pnpm test:e2e    # Playwright; reuses the app on :3000 or starts `pnpm dev`
 ```

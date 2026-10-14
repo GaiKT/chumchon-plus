@@ -1,5 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
+  check,
   date,
   foreignKey,
   index,
@@ -116,4 +118,82 @@ export const persons = pgTable(
     index("persons_household_id_idx").on(t.householdId),
     tenantIsolation("persons", "village_id"),
   ],
+);
+
+// Authentication tables, managed by Better Auth (see src/lib/auth.ts).
+// No row-level security here: sign-in must look users up before the
+// village is known. App code reads them only through the auth library.
+
+export const userRole = pgEnum("user_role", ["admin", "superadmin"]);
+
+export const users = pgTable(
+  "users",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: text().notNull(),
+    email: text().notNull().unique(),
+    emailVerified: boolean().notNull().default(false),
+    image: text(),
+    username: text().unique(),
+    displayUsername: text(),
+    role: userRole().notNull(),
+    // Admins belong to exactly one village; superadmins to none.
+    villageId: uuid().references(() => villages.id),
+    ...timestamps,
+  },
+  (t) => [
+    check(
+      "users_village_matches_role",
+      sql`(${t.role} = 'admin') = (${t.villageId} is not null)`,
+    ),
+  ],
+);
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    token: text().notNull().unique(),
+    ipAddress: text(),
+    userAgent: text(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (t) => [index("sessions_user_id_idx").on(t.userId)],
+);
+
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    accountId: text().notNull(),
+    providerId: text().notNull(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text(),
+    refreshToken: text(),
+    idToken: text(),
+    accessTokenExpiresAt: timestamp({ withTimezone: true }),
+    refreshTokenExpiresAt: timestamp({ withTimezone: true }),
+    scope: text(),
+    password: text(),
+    ...timestamps,
+  },
+  (t) => [index("accounts_user_id_idx").on(t.userId)],
+);
+
+export const verifications = pgTable(
+  "verifications",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    identifier: text().notNull(),
+    value: text().notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (t) => [index("verifications_identifier_idx").on(t.identifier)],
 );

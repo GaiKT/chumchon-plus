@@ -1,20 +1,18 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { connection } from "next/server";
 import { Suspense } from "react";
 import { withVillage } from "@/db";
 import { households, persons } from "@/db/schema";
+import { getCurrentUser, getVillageUser } from "@/lib/session";
+import { signOut } from "./actions";
 
 // Resident data is personal data: never wrap it in "use cache".
 async function ResidentList() {
-  await connection();
-
-  // Temporary until login (issue #02) provides the village from the session.
-  const villageId = process.env.DEV_VILLAGE_ID;
-  if (!villageId) {
-    return <p>ยังไม่ได้กำหนดหมู่บ้าน (DEV_VILLAGE_ID)</p>;
+  const user = await getVillageUser();
+  if (!user) {
+    return <p>บัญชีผู้ดูแลระบบไม่สามารถดูข้อมูลลูกบ้านได้</p>;
   }
 
-  const residents = await withVillage(villageId, (tx) =>
+  const residents = await withVillage(user.villageId, (tx) =>
     tx
       .select({
         id: persons.id,
@@ -50,10 +48,27 @@ async function ResidentList() {
   );
 }
 
+async function AccountBar() {
+  const user = await getCurrentUser();
+  return (
+    <div className="flex items-center justify-between gap-2 text-sm text-gray-600">
+      <span>{user.name}</span>
+      <form action={signOut}>
+        <button type="submit" className="underline">
+          ออกจากระบบ
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-xl p-4">
-      <h1 className="mb-4 text-xl font-semibold">รายชื่อลูกบ้าน</h1>
+      <Suspense fallback={<div className="h-5" />}>
+        <AccountBar />
+      </Suspense>
+      <h1 className="my-4 text-xl font-semibold">รายชื่อลูกบ้าน</h1>
       <Suspense fallback={<p>กำลังโหลดข้อมูล...</p>}>
         <ResidentList />
       </Suspense>

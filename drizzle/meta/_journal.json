@@ -8,6 +8,13 @@
       "when": 1791986115060,
       "tag": "0000_brief_taskmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791988313990,
+      "tag": "0001_talented_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

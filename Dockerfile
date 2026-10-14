@@ -11,7 +11,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm build
+# Placeholders so modules that read env at import time can load during the build;
+# real values are supplied at runtime.
+RUN DATABASE_URL=postgres://build@localhost/build BETTER_AUTH_SECRET=build-only-placeholder-secret-0000 pnpm build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

@@ -23,7 +23,8 @@ services:
     build: .
     environment:
       DATABASE_URL: postgres://chumchon_app:${APP_DB_PASSWORD}@db:5432/chumchon
-      DEV_VILLAGE_ID: ${DEV_VILLAGE_ID:-}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:

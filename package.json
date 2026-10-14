@@ -12,17 +12,22 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "village:create": "tsx scripts/create-village.ts",
-    "seed:residents": "tsx scripts/seed-residents.ts"
+    "seed:residents": "tsx scripts/seed-residents.ts",
+    "user:create": "tsx scripts/create-user.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "better-auth": "^1.7.7",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.0",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
