@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { householdIdOf } from "./db-fixtures";
 import { E2E } from "./fixtures";
 import { signIn } from "./helpers";
 
@@ -31,4 +32,16 @@ test("house number search finds only the user's own village", async ({ page }) =
   const results = page.getByRole("list", { name: "ผลการค้นหา" });
   await expect(results.getByRole("listitem")).toHaveCount(1);
   await expect(results.getByText(E2E.resident.firstName)).toBeVisible();
+});
+
+test("another village's household URL returns 404", async ({ page }) => {
+  const otherHouseholdId = await householdIdOf(E2E.otherResident);
+  const response = await page.goto(`/households/${otherHouseholdId}`);
+  expect(response?.status()).toBe(404);
+  await expect(page.getByText(E2E.otherResident.firstName)).toHaveCount(0);
+});
+
+test("a malformed household id returns 404", async ({ page }) => {
+  const response = await page.goto("/households/not-a-uuid");
+  expect(response?.status()).toBe(404);
 });

@@ -1,4 +1,4 @@
-import { inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { createOwnerDb } from "@/db";
 import { households, persons, users, villages } from "@/db/schema";
 import { createUser } from "@/lib/users";
@@ -47,8 +47,28 @@ export async function createFixtures() {
       await db.insert(persons).values({ villageId, householdId: house.id, ...resident });
     }
 
+    const [emptyHouse] = await db
+      .insert(households)
+      .values({ villageId: a.id, houseNo: "2" })
+      .returning({ id: households.id });
+    await db.insert(persons).values({ villageId: a.id, householdId: emptyHouse.id, ...E2E.movedOut });
+
     await createUser(db, { role: "admin", villageId: a.id, ...E2E.admin, password: E2E_PASSWORD });
     await createUser(db, { role: "superadmin", ...E2E.superadmin, password: E2E_PASSWORD });
+  } finally {
+    await db.$client.end();
+  }
+}
+
+/** Household id of a fixture resident, looked up as the owner (bypasses RLS). */
+export async function householdIdOf(resident: { firstName: string; lastName: string }) {
+  const db = createOwnerDb();
+  try {
+    const [row] = await db
+      .select({ householdId: persons.householdId })
+      .from(persons)
+      .where(and(eq(persons.firstName, resident.firstName), eq(persons.lastName, resident.lastName)));
+    return row.householdId;
   } finally {
     await db.$client.end();
   }

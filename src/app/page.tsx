@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { ageFromBirthDate } from "@/lib/age";
+import { fullName } from "@/lib/format";
 import { searchResidents, type ResidentSearchResult } from "@/lib/residents";
 import { MIN_QUERY_LENGTH, parseQuery } from "@/lib/search-query";
 import { getCurrentUser, getVillageUser } from "@/lib/session";
@@ -9,16 +11,20 @@ import { SearchBox, SearchBoxFallback } from "./search-box";
 function ResidentCard({ resident }: { resident: ResidentSearchResult }) {
   const age = ageFromBirthDate(resident.birthDate);
   return (
-    <li className="rounded-lg border border-gray-200 p-4">
-      <p className="text-lg font-medium">
-        {resident.title}
-        {resident.firstName} {resident.lastName}
-        {resident.nickname && <span className="text-gray-600"> ({resident.nickname})</span>}
-      </p>
-      <p className="text-gray-600">
-        บ้านเลขที่ {resident.houseNo}
-        {age !== null && ` · อายุ ${age} ปี`}
-      </p>
+    <li>
+      <Link
+        href={`/households/${resident.householdId}?person=${resident.id}`}
+        className="block rounded-lg border border-gray-200 p-4 active:bg-gray-100"
+      >
+        <p className="text-lg font-medium">
+          {fullName(resident)}
+          {resident.nickname && <span className="text-gray-600"> ({resident.nickname})</span>}
+        </p>
+        <p className="text-gray-600">
+          บ้านเลขที่ {resident.houseNo}
+          {age !== null && ` · อายุ ${age} ปี`}
+        </p>
+      </Link>
     </li>
   );
 }
