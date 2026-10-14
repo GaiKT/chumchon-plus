@@ -174,6 +174,8 @@ export const users = pgTable(
     role: userRole().notNull(),
     // Admins belong to exactly one village; superadmins to none.
     villageId: uuid().references(() => villages.id),
+    /** Set when an admin disables the account; it can no longer sign in. */
+    disabledAt: timestamp({ withTimezone: true }),
     ...timestamps,
   },
   (t) => [

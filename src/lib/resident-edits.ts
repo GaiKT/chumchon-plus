@@ -11,7 +11,7 @@ const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 type AuditEntry = {
   action: "create" | "update" | "delete" | "restore";
-  tableName: "households" | "persons";
+  tableName: "households" | "persons" | "users" | "sessions";
   recordId: string;
   changes: Record<string, [unknown, unknown]>;
 };

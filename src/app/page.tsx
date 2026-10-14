@@ -70,6 +70,11 @@ async function AccountBar() {
   return (
     <div className="flex items-center justify-between gap-2 text-sm text-gray-600">
       <span>{user.name}</span>
+      {user.role === "admin" && (
+        <Link href="/devices" className="ml-auto underline">
+          อุปกรณ์
+        </Link>
+      )}
       <form action={signOut}>
         <button type="submit" className="underline">
           ออกจากระบบ

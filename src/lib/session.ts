@@ -6,6 +6,7 @@ import { auth } from "./auth";
 
 export type CurrentUser = {
   id: string;
+  sessionId: string;
   name: string;
   role: "admin" | "superadmin";
   villageId: string | null;
@@ -23,6 +24,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser> => {
   const { id, name, role, villageId } = session.user;
   return {
     id,
+    sessionId: session.session.id,
     name,
     role: role as CurrentUser["role"],
     villageId: villageId ?? null,

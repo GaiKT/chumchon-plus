@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 
@@ -33,6 +34,20 @@ export const auth = betterAuth({
     additionalFields: {
       role: { type: "string", required: true, input: false },
       villageId: { type: "string", required: false, input: false },
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        // Disabled accounts cannot start a session by any sign-in method.
+        before: async (session) => {
+          const [user] = await getDb()
+            .select({ disabledAt: schema.users.disabledAt })
+            .from(schema.users)
+            .where(eq(schema.users.id, session.userId));
+          return user?.disabledAt ? false : undefined;
+        },
+      },
     },
   },
   plugins: [username(), nextCookies()],
