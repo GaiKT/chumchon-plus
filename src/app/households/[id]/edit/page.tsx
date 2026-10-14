@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getHouseholdForEdit } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
-import { HouseholdForm } from "./household-form";
+import { saveHousehold } from "../../../edit-actions";
+import { HouseholdForm } from "../../household-form";
 
 export const instant = false;
 
@@ -17,7 +18,12 @@ export default async function EditHouseholdPage({ params }: PageProps<"/househol
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
       <h1 className="text-2xl font-semibold">แก้ไขข้อมูลบ้านเลขที่ {household.houseNo}</h1>
-      <HouseholdForm household={household} />
+      <HouseholdForm
+        action={saveHousehold.bind(null, household.id)}
+        initial={household}
+        residents={household.residents}
+        cancelHref={`/households/${household.id}`}
+      />
     </main>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ageFromBirthDate } from "@/lib/age";
-import { fullName } from "@/lib/format";
+import { fullName, STATUS_LABELS } from "@/lib/format";
 import { searchResidents, type ResidentSearchResult } from "@/lib/residents";
 import { MIN_QUERY_LENGTH, parseQuery } from "@/lib/search-query";
 import { getCurrentUser, getVillageUser } from "@/lib/session";
@@ -19,6 +19,11 @@ function ResidentCard({ resident }: { resident: ResidentSearchResult }) {
         <p className="text-lg font-medium">
           {fullName(resident)}
           {resident.nickname && <span className="text-gray-600"> ({resident.nickname})</span>}
+          {resident.status !== "resident" && (
+            <span className="ml-2 rounded bg-gray-200 px-2 py-0.5 text-sm text-gray-700">
+              {STATUS_LABELS[resident.status]}
+            </span>
+          )}
         </p>
         <p className="text-gray-600">
           บ้านเลขที่ {resident.houseNo}
@@ -36,7 +41,7 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/">["s
     return <p>บัญชีผู้ดูแลระบบไม่สามารถดูข้อมูลลูกบ้านได้</p>;
   }
 
-  const { q } = await searchParams;
+  const { q, all } = await searchParams;
   const query = parseQuery(typeof q === "string" ? q : undefined);
   if (query.kind === "empty" || query.kind === "tooShort") {
     return (
@@ -46,7 +51,7 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/">["s
     );
   }
 
-  const residents = await searchResidents(user.villageId, query);
+  const residents = await searchResidents(user.villageId, query, { includeFormer: all === "1" });
   if (residents.length === 0) {
     return <p className="text-gray-600">ไม่พบลูกบ้านที่ตรงกับคำค้น</p>;
   }
@@ -80,7 +85,12 @@ export default function Home({ searchParams }: PageProps<"/">) {
       <Suspense fallback={<div className="h-5" />}>
         <AccountBar />
       </Suspense>
-      <h1 className="text-xl font-semibold">ค้นหาลูกบ้าน</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">ค้นหาลูกบ้าน</h1>
+        <Link href="/households/new" className="py-2 text-blue-700 underline">
+          + เพิ่มบ้าน
+        </Link>
+      </div>
       <Suspense fallback={<SearchBoxFallback />}>
         <SearchBox />
       </Suspense>

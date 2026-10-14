@@ -14,7 +14,7 @@
 | [07](07-household-detail.md) | ✅ หน้ารายละเอียดครัวเรือน | AFK | 04 |
 | [08](08-copy-and-call.md) | ✅ ปุ่มคัดลอกข้อมูลและโทรออก | AFK | 07 |
 | [09](09-edit-with-audit-log.md) | ✅ แก้ไขข้อมูล พร้อมบันทึกประวัติการแก้ไข | AFK | 07 |
-| [10](10-add-and-status-change.md) | เพิ่มข้อมูล และเปลี่ยนสถานะ | AFK | 09 |
+| [10](10-add-and-status-change.md) | ✅ เพิ่มข้อมูล และเปลี่ยนสถานะ | AFK | 09 |
 | [11](11-soft-delete-and-restore.md) | ลบข้อมูลที่ผิด และกู้คืนภายใน 30 วัน | AFK | 09 |
 | [12](12-line-login-and-invite.md) | เข้าสู่ระบบด้วย LINE และเชิญผู้ใช้ด้วยลิงก์ | HITL | 02, 17 |
 | [13](13-session-management.md) | จัดการอุปกรณ์ที่เข้าสู่ระบบ | AFK | 02 |

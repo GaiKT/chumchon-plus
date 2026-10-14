@@ -5,6 +5,9 @@ import { z } from "zod";
 
 export const HEAD_RELATION = "หัวหน้าครัวเรือน";
 
+export const PERSON_STATUSES = ["resident", "moved_out", "deceased"] as const;
+export type PersonStatus = (typeof PERSON_STATUSES)[number];
+
 export const optionalText = z
   .string()
   .trim()
@@ -85,10 +88,17 @@ export const phoneField = optionalText.transform((v, ctx) => {
 /** In an update, an emptied optional field must be saved as NULL, not skipped. */
 const cleared = <T>(field: z.ZodType<T | undefined>) => field.transform((v) => v ?? null);
 
+/** A select whose empty option means "none". */
+const optionalId = z
+  .union([z.uuid(), z.literal("")])
+  .optional()
+  .transform((v) => v || null);
+
 export const householdFormSchema = z.object({
   houseNo: houseNoField,
   zone: cleared(optionalText),
   note: cleared(optionalText),
+  headPersonId: optionalId,
 });
 
 export const personFormSchema = z.object({
@@ -101,7 +111,11 @@ export const personFormSchema = z.object({
   birthDate: cleared(birthDateField),
   phone: cleared(phoneField),
   note: cleared(optionalText),
+  status: z.enum(PERSON_STATUSES).default("resident"),
 });
+
+/** Who takes over when the household head moves out, dies or changes house. */
+export const newHeadSchema = z.object({ newHeadPersonId: optionalId });
 
 export type HouseholdFormValues = z.output<typeof householdFormSchema>;
 export type PersonFormValues = z.output<typeof personFormSchema>;

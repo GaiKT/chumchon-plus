@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useTransition } from "react";
 
 const inputClass = "w-full rounded-lg border border-gray-300 px-3 py-2 text-lg aria-invalid:border-red-600";
 
@@ -67,23 +67,62 @@ export function TextField({
   );
 }
 
+/**
+ * Submits to a server action without React's automatic form reset. That
+ * reset puts selects back to their first option after a rejected submit
+ * (e.g. status back to "อาศัยอยู่"), so a second submit would save values
+ * the user never chose.
+ */
+export function ActionForm({
+  action,
+  className,
+  children,
+}: {
+  action: (formData: FormData) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const [, startTransition] = useTransition();
+  return (
+    <form
+      className={className}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => action(formData));
+      }}
+    >
+      {children}
+    </form>
+  );
+}
+
 export function SelectField({
   name,
   label,
   defaultValue,
+  onChange,
   errors,
   options,
 }: {
   name: string;
   label: string;
-  defaultValue: string;
+  defaultValue: string | null;
+  onChange?: (value: string) => void;
   errors?: string[];
   options: { value: string; label: string }[];
 }) {
   const id = useId();
   return (
     <FieldShell id={id} label={label} errors={errors}>
-      <select id={id} name={name} defaultValue={defaultValue} className={inputClass}>
+      <select
+        id={id}
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        onChange={onChange && ((e) => onChange(e.target.value))}
+        aria-invalid={errors ? true : undefined}
+        className={inputClass}
+      >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}

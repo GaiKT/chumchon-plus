@@ -140,6 +140,13 @@ export default async function HouseholdPage({ params, searchParams }: PageProps<
         {household.note && <p className="mt-1 text-gray-700">หมายเหตุ: {household.note}</p>}
       </header>
 
+      <Link
+        href={`/households/${household.id}/members/new`}
+        className="self-start py-2 text-blue-700 underline"
+      >
+        + เพิ่มสมาชิก
+      </Link>
+
       {household.residents.length === 0 && (
         <p className="self-start rounded bg-amber-100 px-3 py-1 font-medium text-amber-900">บ้านว่าง</p>
       )}

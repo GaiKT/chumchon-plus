@@ -12,6 +12,7 @@ export type ResidentSearchResult = {
   nickname: string | null;
   houseNo: string;
   birthDate: string | null;
+  status: "resident" | "moved_out" | "deceased";
 };
 
 const nameColumns = [persons.firstName, persons.lastName, persons.nickname];
@@ -72,12 +73,14 @@ function houseNoSearch(prefix: string): { where: SQL[]; orderBy: SQL[] } {
 }
 
 /**
- * Searches current residents of one village by name ("สมชาย ใจดี") or by
- * house number prefix ("12" finds 12, 12/1 and 123).
+ * Searches residents of one village by name ("สมชาย ใจดี") or by house
+ * number prefix ("12" finds 12, 12/1 and 123). People who moved out or died
+ * are left out unless includeFormer is set.
  */
 export async function searchResidents(
   villageId: string,
   query: ParsedQuery,
+  { includeFormer = false }: { includeFormer?: boolean } = {},
 ): Promise<ResidentSearchResult[]> {
   let search: { where: SQL[]; orderBy: SQL[] };
   if (query.kind === "name") search = nameSearch(query.tokens);
@@ -95,12 +98,13 @@ export async function searchResidents(
         nickname: persons.nickname,
         houseNo: households.houseNo,
         birthDate: persons.birthDate,
+        status: persons.status,
       })
       .from(persons)
       .innerJoin(households, eq(persons.householdId, households.id))
       .where(
         and(
-          eq(persons.status, "resident"),
+          includeFormer ? undefined : eq(persons.status, "resident"),
           isNull(persons.deletedAt),
           isNull(households.deletedAt),
           ...search.where,

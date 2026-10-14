@@ -2,8 +2,13 @@
 
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
-import { updateHousehold, updatePerson } from "@/lib/resident-edits";
-import { householdFormSchema, personFormSchema } from "@/lib/resident-fields";
+import {
+  createHousehold,
+  createPerson,
+  updateHousehold,
+  updatePerson,
+} from "@/lib/resident-edits";
+import { householdFormSchema, newHeadSchema, personFormSchema } from "@/lib/resident-fields";
 import { getVillageUser } from "@/lib/session";
 
 export type FormState = {
@@ -25,6 +30,19 @@ async function requireActor() {
   return { id: user.id, villageId: user.villageId };
 }
 
+const DUPLICATE_HOUSE_NO = { houseNo: ["บ้านเลขที่นี้มีอยู่ในระบบแล้ว"] };
+
+export async function addHousehold(_prev: FormState, formData: FormData): Promise<FormState> {
+  const actor = await requireActor();
+  const values = submitted(formData);
+  const parsed = householdFormSchema.omit({ headPersonId: true }).safeParse(values);
+  if (!parsed.success) return { fieldErrors: z.flattenError(parsed.error).fieldErrors, values };
+
+  const result = await createHousehold(actor, parsed.data);
+  if (result === "duplicateHouseNo") return { fieldErrors: DUPLICATE_HOUSE_NO, values };
+  redirect(`/households/${result.id}`);
+}
+
 export async function saveHousehold(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const actor = await requireActor();
   const values = submitted(formData);
@@ -33,22 +51,49 @@ export async function saveHousehold(id: string, _prev: FormState, formData: Form
 
   const result = await updateHousehold(actor, id, parsed.data);
   if (result === "notFound") notFound();
-  if (result === "duplicateHouseNo") {
-    return { fieldErrors: { houseNo: ["บ้านเลขที่นี้มีอยู่ในระบบแล้ว"] }, values };
+  if (result === "duplicateHouseNo") return { fieldErrors: DUPLICATE_HOUSE_NO, values };
+  if (result === "invalidHead") {
+    return { fieldErrors: { headPersonId: ["หัวหน้าครัวเรือนต้องเป็นสมาชิกที่อาศัยอยู่ในบ้านนี้"] }, values };
   }
   redirect(`/households/${id}`);
+}
+
+export async function addPerson(householdId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const actor = await requireActor();
+  const values = submitted(formData);
+  const parsed = personFormSchema.safeParse({ ...values, householdId, status: "resident" });
+  if (!parsed.success) return { fieldErrors: z.flattenError(parsed.error).fieldErrors, values };
+
+  const result = await createPerson(actor, parsed.data);
+  if (result === "householdNotFound") notFound();
+  redirect(`/households/${householdId}?person=${result.id}`);
 }
 
 export async function savePerson(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const actor = await requireActor();
   const values = submitted(formData);
   const parsed = personFormSchema.safeParse(values);
-  if (!parsed.success) return { fieldErrors: z.flattenError(parsed.error).fieldErrors, values };
+  const head = newHeadSchema.safeParse(values);
+  if (!parsed.success || !head.success) {
+    return {
+      fieldErrors: {
+        ...(parsed.error && z.flattenError(parsed.error).fieldErrors),
+        ...(head.error && z.flattenError(head.error).fieldErrors),
+      },
+      values,
+    };
+  }
 
-  const result = await updatePerson(actor, id, parsed.data);
+  const result = await updatePerson(actor, id, parsed.data, head.data.newHeadPersonId);
   if (result === "notFound") notFound();
   if (result === "householdNotFound") {
     return { fieldErrors: { householdId: ["ไม่พบบ้านที่เลือก"] }, values };
+  }
+  if (result === "needsNewHead") {
+    return {
+      fieldErrors: { newHeadPersonId: ["กรุณาเลือกหัวหน้าครัวเรือนคนใหม่จากสมาชิกที่ยังอาศัยอยู่"] },
+      values,
+    };
   }
   redirect(`/households/${parsed.data.householdId}?person=${id}`);
 }

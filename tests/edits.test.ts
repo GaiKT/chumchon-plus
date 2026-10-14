@@ -2,7 +2,13 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createOwnerDb, getDb, withVillage, type Db } from "@/db";
 import { auditLogs, households, persons, users, villages } from "@/db/schema";
-import { updateHousehold, updatePerson, type Actor } from "@/lib/resident-edits";
+import {
+  createHousehold,
+  createPerson,
+  updateHousehold,
+  updatePerson,
+  type Actor,
+} from "@/lib/resident-edits";
 import { householdFormSchema, personFormSchema } from "@/lib/resident-fields";
 import { createUser } from "@/lib/users";
 
@@ -132,12 +138,75 @@ describe.skipIf(!hasDb)("resident edits", () => {
 
   it("updates a household and rejects a duplicate house number", async () => {
     const save = (houseNo: string) =>
-      updateHousehold(actor, house2, householdFormSchema.parse({ houseNo, zone: "คุ้มใหม่", note: "" }));
+      updateHousehold(actor, house2, householdFormSchema.parse({ houseNo, zone: "คุ้มใหม่", note: "", headPersonId: "" }));
     expect(await save("1")).toBe("duplicateHouseNo");
     expect(await save("2/1")).toBe("saved");
 
     const [audit] = await auditFor(house2);
     expect(audit.changes).toEqual({ houseNo: ["2", "2/1"], zone: [null, "คุ้มใหม่"] });
+  });
+
+  it("creates a household and a member, auditing both", async () => {
+    expect(await createHousehold(actor, { houseNo: "1", zone: null, note: null })).toBe("duplicateHouseNo");
+
+    const created = await createHousehold(actor, { houseNo: "3", zone: "คุ้มใหม่", note: null });
+    if (typeof created === "string") throw new Error(created);
+    const person = await createPerson(actor, personInput({ householdId: created.id, firstName: "ใหม่", relationToHead: "" }));
+    if (typeof person === "string") throw new Error(person);
+
+    const [householdAudit] = await auditFor(created.id);
+    expect(householdAudit).toMatchObject({ action: "create", changes: { houseNo: [null, "3"], zone: [null, "คุ้มใหม่"] } });
+    const [personAudit] = await auditFor(person.id);
+    expect(personAudit).toMatchObject({ action: "create", changes: { firstName: [null, "ใหม่"], status: [null, "resident"] } });
+  });
+
+  it("refuses to add a member to another village's household", async () => {
+    const [otherHouse] = await owner
+      .select({ id: households.id })
+      .from(households)
+      .where(eq(households.villageId, otherVillage));
+    expect(await createPerson(actor, personInput({ householdId: otherHouse.id }))).toBe("householdNotFound");
+  });
+
+  describe("when the household head leaves", () => {
+    let spouse: string;
+
+    beforeEach(async () => {
+      [{ id: spouse }] = await owner
+        .insert(persons)
+        .values({ villageId: actor.villageId, householdId: house1, firstName: "คู่", lastName: "แก้ไข" })
+        .returning({ id: persons.id });
+    });
+
+    it("requires a successor while others still live there", async () => {
+      expect(await updatePerson(actor, head, personInput({ status: "deceased" }))).toBe("needsNewHead");
+      const [row] = await owner.select().from(persons).where(eq(persons.id, head));
+      expect(row.status).toBe("resident");
+    });
+
+    it("hands over to the chosen successor and audits it", async () => {
+      expect(await updatePerson(actor, head, personInput({ status: "deceased" }), spouse)).toBe("saved");
+      const [house] = await owner.select().from(households).where(eq(households.id, house1));
+      expect(house.headPersonId).toBe(spouse);
+      expect((await auditFor(house1)).map((a) => a.changes)).toEqual([{ headPersonId: [head, spouse] }]);
+    });
+
+    it("rejects a successor who does not live there", async () => {
+      expect(await updatePerson(actor, head, personInput({ status: "moved_out" }), otherPerson)).toBe("needsNewHead");
+    });
+
+    it("lets a household's head be changed only to a current resident", async () => {
+      const save = (headPersonId: string) =>
+        updateHousehold(actor, house1, householdFormSchema.parse({ houseNo: "1", zone: "", note: "", headPersonId }));
+      expect(await save(otherPerson)).toBe("invalidHead");
+      expect(await save(spouse)).toBe("saved");
+    });
+  });
+
+  it("leaves a house headless when its only resident leaves", async () => {
+    expect(await updatePerson(actor, head, personInput({ status: "moved_out" }))).toBe("saved");
+    const [house] = await owner.select().from(households).where(eq(households.id, house1));
+    expect(house.headPersonId).toBeNull();
   });
 
   it("keeps the audit log append-only for the app role", async () => {

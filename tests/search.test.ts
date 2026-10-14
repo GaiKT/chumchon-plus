@@ -79,6 +79,12 @@ describe.skipIf(!hasDb)("searchResidents", () => {
     expect(await names("สม")).toEqual(["สมชาย", "สมศรี"]);
   });
 
+  it("includes people who moved out when asked", async () => {
+    const results = await searchResidents(villageId, parseQuery("สมปอง"), { includeFormer: true });
+    expect(results.map((r) => [r.firstName, r.status])).toEqual([["สมปอง", "moved_out"]]);
+    expect(await names("สมปอง")).toEqual([]);
+  });
+
   it("treats % literally", async () => {
     expect(await names("ม%")).toEqual(["ร้อยเปอร์"]);
     expect(await names("%%")).toEqual([]);
