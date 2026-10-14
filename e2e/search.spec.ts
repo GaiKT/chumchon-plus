@@ -56,3 +56,11 @@ test("fits a 360px wide screen without horizontal scrolling", async ({ page }) =
   );
   expect(overflow).toBe(0);
 });
+
+test("finds residents by house number from a single digit", async ({ page }) => {
+  await page.getByLabel("ค้นหาลูกบ้าน").fill("1");
+  await expect(page).toHaveURL(/q=1$/);
+  const card = results(page).getByRole("listitem");
+  await expect(card).toHaveCount(1);
+  await expect(card).toContainText("บ้านเลขที่ 1");
+});

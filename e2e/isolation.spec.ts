@@ -19,3 +19,11 @@ test("search finds only the user's own village", async ({ page }) => {
   await page.getByLabel("ค้นหาลูกบ้าน").fill(E2E.otherResident.firstName);
   await expect(page.getByText("ไม่พบลูกบ้านที่ตรงกับคำค้น")).toBeVisible();
 });
+
+test("house number search finds only the user's own village", async ({ page }) => {
+  // Both fixture villages have a house numbered 1.
+  await page.getByLabel("ค้นหาลูกบ้าน").fill("1");
+  const results = page.getByRole("list", { name: "ผลการค้นหา" });
+  await expect(results.getByRole("listitem")).toHaveCount(1);
+  await expect(results.getByText(E2E.resident.firstName)).toBeVisible();
+});

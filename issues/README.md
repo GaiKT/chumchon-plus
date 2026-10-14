@@ -9,7 +9,7 @@
 | [02](02-password-login-and-tenant.md) | ✅ เข้าสู่ระบบด้วยรหัสผ่าน และกำหนดหมู่บ้านจาก session | AFK | 01 |
 | [03](03-cross-tenant-isolation-tests.md) | ✅ ชุดทดสอบการแยกข้อมูลระหว่างหมู่บ้าน | AFK | 02 |
 | [04](04-search-by-name.md) | ✅ ค้นหาด้วยชื่อ นามสกุล หรือชื่อเล่น | AFK | 02 |
-| [05](05-search-by-house-number.md) | ค้นหาด้วยบ้านเลขที่ | AFK | 04 |
+| [05](05-search-by-house-number.md) | ✅ ค้นหาด้วยบ้านเลขที่ | AFK | 04 |
 | [06](06-fuzzy-search.md) | ค้นหาได้แม้พิมพ์ผิดเล็กน้อย | AFK | 04 |
 | [07](07-household-detail.md) | หน้ารายละเอียดครัวเรือน | AFK | 04 |
 | [08](08-copy-and-call.md) | ปุ่มคัดลอกข้อมูลและโทรออก | AFK | 07 |

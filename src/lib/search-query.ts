@@ -29,13 +29,23 @@ export function stripTitle(query: string): string {
 export type ParsedQuery =
   | { kind: "empty" }
   | { kind: "tooShort" }
+  | { kind: "houseNo"; prefix: string }
   | { kind: "name"; tokens: string[] };
 
+/** A query starting with a digit is a house number, e.g. "12" or "12/1". */
+export function isHouseNoQuery(query: string): boolean {
+  return /^\d/.test(query);
+}
+
 export function parseQuery(raw: string | undefined | null): ParsedQuery {
-  const query = stripTitle((raw ?? "").slice(0, MAX_QUERY_LENGTH).trim().replace(/\s+/g, " "));
+  const query = (raw ?? "").slice(0, MAX_QUERY_LENGTH).trim().replace(/\s+/g, " ");
   if (query.length === 0) return { kind: "empty" };
-  if (query.length < MIN_QUERY_LENGTH) return { kind: "tooShort" };
-  return { kind: "name", tokens: query.split(" ") };
+  // House numbers are short, so even one digit is a useful search.
+  if (isHouseNoQuery(query)) return { kind: "houseNo", prefix: query.replace(/\s/g, "") };
+
+  const name = stripTitle(query);
+  if (name.length < MIN_QUERY_LENGTH) return { kind: "tooShort" };
+  return { kind: "name", tokens: name.split(" ") };
 }
 
 /** Escapes LIKE wildcards so user input matches literally. */

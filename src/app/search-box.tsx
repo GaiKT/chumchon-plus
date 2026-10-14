@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { MIN_QUERY_LENGTH } from "@/lib/search-query";
+import { isHouseNoQuery, MIN_QUERY_LENGTH } from "@/lib/search-query";
 
 const DEBOUNCE_MS = 300;
 
@@ -16,8 +16,9 @@ export function SearchBox() {
   useEffect(() => {
     const query = value.trim();
     if (query === urlQuery) return;
-    // A single character matches too much to be useful; wait for more.
-    if (query.length > 0 && query.length < MIN_QUERY_LENGTH) return;
+    // A single letter matches too much to be useful; a single digit is a
+    // reasonable house number search.
+    if (!isHouseNoQuery(query) && query.length > 0 && query.length < MIN_QUERY_LENGTH) return;
 
     const timer = setTimeout(() => {
       startTransition(() => {
@@ -33,7 +34,7 @@ export function SearchBox() {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="ค้นหาชื่อ นามสกุล หรือชื่อเล่น"
+        placeholder="ชื่อ นามสกุล ชื่อเล่น หรือบ้านเลขที่"
         aria-label="ค้นหาลูกบ้าน"
         autoComplete="off"
         enterKeyHint="search"
@@ -53,7 +54,7 @@ export function SearchBoxFallback() {
     <input
       type="search"
       disabled
-      placeholder="ค้นหาชื่อ นามสกุล หรือชื่อเล่น"
+      placeholder="ชื่อ นามสกุล ชื่อเล่น หรือบ้านเลขที่"
       aria-label="ค้นหาลูกบ้าน"
       className="w-full rounded-lg border border-gray-300 px-4 py-3 text-lg"
     />

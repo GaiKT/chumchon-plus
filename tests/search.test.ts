@@ -27,13 +27,20 @@ describe.skipIf(!hasDb)("searchResidents", () => {
       .insert(households)
       .values({ villageId, houseNo: "12/1" })
       .returning({ id: households.id });
+    for (const houseNo of ["123", "12", "45", "2/12"]) {
+      const [h] = await owner
+        .insert(households)
+        .values({ villageId, houseNo })
+        .returning({ id: households.id });
+      await owner.insert(persons).values({ villageId, householdId: h.id, firstName: `บ้าน${houseNo}`, lastName: "ทดสอบ" });
+    }
     await owner.insert(persons).values(
       [
         { title: "นาย", firstName: "สมชาย", lastName: "ใจดี", nickname: "แดง" },
         { title: "นาง", firstName: "สมศรี", lastName: "ใจดี", nickname: "ศรี" },
         { firstName: "สมปอง", lastName: "รักถิ่น", status: "moved_out" as const },
         { firstName: "สมหวัง", lastName: "ลบแล้ว", deletedAt: new Date() },
-        { firstName: "ร้อยเปอร์", lastName: "50%" },
+        { firstName: "ร้อยเปอร์", lastName: "เต็ม%" },
       ].map((p) => ({ villageId, householdId: house.id, ...p })),
     );
   });
@@ -70,8 +77,18 @@ describe.skipIf(!hasDb)("searchResidents", () => {
   });
 
   it("treats % literally", async () => {
-    expect(await names("0%")).toEqual(["ร้อยเปอร์"]);
+    expect(await names("ม%")).toEqual(["ร้อยเปอร์"]);
     expect(await names("%%")).toEqual([]);
+  });
+
+  it("finds house numbers by prefix with the exact match first", async () => {
+    const houses = async (raw: string) =>
+      (await searchResidents(villageId, parseQuery(raw))).map((r) => r.houseNo);
+    // House 12/1 has three current residents.
+    expect(await houses("12")).toEqual(["12", "123", "12/1", "12/1", "12/1"]);
+    expect(await houses("12/1")).toEqual(["12/1", "12/1", "12/1"]);
+    expect(await houses("4")).toEqual(["45"]);
+    expect(await houses("9")).toEqual([]);
   });
 
   it("returns the house number and birth date fields", async () => {

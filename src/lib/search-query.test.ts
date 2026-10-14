@@ -33,6 +33,11 @@ describe("parseQuery", () => {
     expect(parseQuery("  นาย สมชาย   ใจดี ")).toEqual({ kind: "name", tokens: ["สมชาย", "ใจดี"] });
   });
 
+  it("treats a leading digit as a house number, even a single one", () => {
+    expect(parseQuery("1")).toEqual({ kind: "houseNo", prefix: "1" });
+    expect(parseQuery(" 12 / 1 ")).toEqual({ kind: "houseNo", prefix: "12/1" });
+  });
+
   it("caps very long input", () => {
     const query = parseQuery("ก".repeat(500));
     expect(query.kind === "name" && query.tokens[0].length).toBe(100);

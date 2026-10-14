@@ -44,6 +44,3 @@ pnpm test:e2e    # Playwright; reuses whatever serves :3000, else starts `pnpm d
 ```
 
 Stop or rebuild the Docker `app` container before `pnpm test:e2e`, otherwise the tests run against its stale build.
-
-```sh
-```

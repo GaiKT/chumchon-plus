@@ -32,10 +32,10 @@ async function SearchResults({ searchParams }: { searchParams: PageProps<"/">["s
 
   const { q } = await searchParams;
   const query = parseQuery(typeof q === "string" ? q : undefined);
-  if (query.kind !== "name") {
+  if (query.kind === "empty" || query.kind === "tooShort") {
     return (
       <p className="text-gray-600">
-        พิมพ์ชื่อ นามสกุล หรือชื่อเล่น อย่างน้อย {MIN_QUERY_LENGTH} ตัวอักษร
+        พิมพ์ชื่อ นามสกุล หรือชื่อเล่น อย่างน้อย {MIN_QUERY_LENGTH} ตัวอักษร หรือพิมพ์บ้านเลขที่
       </p>
     );
   }
