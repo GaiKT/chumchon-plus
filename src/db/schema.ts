@@ -5,6 +5,7 @@ import {
   date,
   foreignKey,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgPolicy,
@@ -176,6 +177,10 @@ export const users = pgTable(
     villageId: uuid().references(() => villages.id),
     /** Set when an admin disables the account; it can no longer sign in. */
     disabledAt: timestamp({ withTimezone: true }),
+    /** Consecutive wrong passwords; reset on success or when a lock starts. */
+    failedSignIns: integer().notNull().default(0),
+    /** Password sign-in is refused until then (see src/lib/sign-in-lockout.ts). */
+    lockedUntil: timestamp({ withTimezone: true }),
     ...timestamps,
   },
   (t) => [

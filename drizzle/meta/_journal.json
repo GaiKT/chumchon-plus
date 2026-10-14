@@ -36,6 +36,13 @@
       "when": 1791991424310,
       "tag": "0004_nervous_kylun",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791991690118,
+      "tag": "0005_chunky_switch",
+      "breakpoints": true
     }
   ]
 }

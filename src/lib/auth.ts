@@ -1,10 +1,14 @@
 import { betterAuth } from "better-auth";
+import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
+import { isLocked, recordFailedSignIn, recordSuccessfulSignIn } from "./sign-in-lockout";
+
+const PASSWORD_SIGN_IN = "/sign-in/username";
 
 const DAY = 60 * 60 * 24;
 
@@ -18,7 +22,6 @@ export const auth = betterAuth({
       verification: schema.verifications,
     },
   }),
-  advanced: { database: { generateId: "uuid" } },
   emailAndPassword: {
     enabled: true,
     // Accounts are created by a superadmin (CLI) or by invitation, never self-service.
@@ -49,6 +52,35 @@ export const auth = betterAuth({
         },
       },
     },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== PASSWORD_SIGN_IN || typeof ctx.body?.username !== "string") return;
+      if (await isLocked(getDb(), ctx.body.username)) {
+        throw new APIError("TOO_MANY_REQUESTS", { message: "Account temporarily locked" });
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== PASSWORD_SIGN_IN || typeof ctx.body?.username !== "string") return;
+      const returned = ctx.context.returned;
+      if (isAPIError(returned)) {
+        if (returned.statusCode === 401) await recordFailedSignIn(getDb(), ctx.body.username);
+      } else {
+        await recordSuccessfulSignIn(getDb(), ctx.body.username);
+      }
+    }),
+  },
+  rateLimit: {
+    // On by default in production only. Limits are per client IP.
+    window: 60,
+    max: 100,
+    customRules: { [PASSWORD_SIGN_IN]: { window: 60, max: 10 } },
+  },
+  advanced: {
+    database: { generateId: "uuid" },
+    // The app is only reachable through Cloudflare Tunnel, which sets this
+    // header; without it every visitor would share the tunnel's address.
+    ipAddress: { ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"] },
   },
   plugins: [username(), nextCookies()],
 });

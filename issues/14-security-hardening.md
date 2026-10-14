@@ -2,7 +2,7 @@
 id: 14
 title: เสริมความปลอดภัยของระบบ
 type: AFK
-status: ready-for-agent
+status: done
 ---
 
 ## สิ่งที่ต้องทำ
@@ -18,11 +18,11 @@ status: ready-for-agent
 
 ## เกณฑ์ตรวจรับ
 
-- [ ] ใส่รหัสผ่านผิด 5 ครั้งแล้วถูกล็อก 15 นาที
-- [ ] response มี security headers ครบตามรายการ
-- [ ] `robots.txt` ปิดการ index ทั้งเว็บ
-- [ ] ค้นหาแล้วตรวจ log ไม่พบคำค้นหรือชื่อลูกบ้าน
-- [ ] cookie ของ session มี flag ครบ
+- [x] ใส่รหัสผ่านผิด 5 ครั้งแล้วถูกล็อก 15 นาที
+- [x] response มี security headers ครบตามรายการ
+- [x] `robots.txt` ปิดการ index ทั้งเว็บ
+- [x] ค้นหาแล้วตรวจ log ไม่พบคำค้นหรือชื่อลูกบ้าน
+- [x] cookie ของ session มี flag ครบ
 
 ## ขึ้นกับ
 

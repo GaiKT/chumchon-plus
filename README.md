@@ -29,6 +29,8 @@ Sign-in requests must come from the origin in `BETTER_AUTH_URL` (use `http://loc
 - `MIGRATION_DATABASE_URL` (table owner, bypasses RLS) is only for migrations and the village management scripts.
 - Never wrap resident data in `"use cache"`, and never cache the session: revoking a session must take effect on the next request.
 - Get the village from `getVillageUser()` (src/lib/session.ts), never from the request.
+- `users` and `sessions` have no RLS (sign-in needs them first): filter them by village explicitly.
+- Never log personal data; `console` is banned in `src/` by ESLint.
 
 ## Importing residents
 

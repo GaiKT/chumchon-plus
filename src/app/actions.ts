@@ -18,6 +18,9 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
     await auth.api.signInUsername({ body: { username, password }, headers: await headers() });
   } catch (err) {
     if (err instanceof APIError) {
+      if (err.statusCode === 429) {
+        return { error: "เข้าสู่ระบบไม่สำเร็จหลายครั้ง กรุณารอ 15 นาทีแล้วลองใหม่" };
+      }
       return { error: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" };
     }
     throw err;
