@@ -9,7 +9,7 @@ const DEBOUNCE_MS = 300;
 export const SEARCH_INPUT_ID = "resident-search";
 
 const inputClass =
-  "min-h-15 w-full appearance-none rounded-md border-2 border-foreground bg-background pr-14 pl-12 text-title text-foreground [&::-webkit-search-cancel-button]:hidden";
+  "min-h-15 w-full appearance-none rounded-md border-2 border-foreground bg-background pr-14 pl-12 text-title text-foreground placeholder:text-body [&::-webkit-search-cancel-button]:hidden";
 
 function SearchIcon() {
   return (
@@ -33,15 +33,18 @@ export function SearchBox() {
 
   const navigate = useCallback(
     (query: string, all: boolean) => {
-      const params = new URLSearchParams();
+      // Keep the age and zone filters chosen below the search box.
+      const params = new URLSearchParams(searchParams.toString());
       if (query) params.set("q", query);
+      else params.delete("q");
       if (all) params.set("all", "1");
+      else params.delete("all");
       const search = params.toString();
       startTransition(() => {
         router.replace(search ? `/?${search}` : "/", { scroll: false });
       });
     },
-    [router],
+    [router, searchParams],
   );
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export function SearchBox() {
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="กรอกชื่อ ชื่อเล่น หรือบ้านเลขที่"
+          placeholder="กรอกชื่อหรือบ้านเลขที่"
           autoComplete="off"
           enterKeyHint="search"
           className={inputClass}
@@ -115,7 +118,7 @@ export function SearchBoxFallback() {
           id={SEARCH_INPUT_ID}
           type="search"
           disabled
-          placeholder="กรอกชื่อ ชื่อเล่น หรือบ้านเลขที่"
+          placeholder="กรอกชื่อหรือบ้านเลขที่"
           className={inputClass}
         />
       </div>

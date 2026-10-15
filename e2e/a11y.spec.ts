@@ -31,6 +31,7 @@ test("signed-in pages have no accessibility problems", async ({ page }) => {
     "/households/new",
     "/devices",
     "/trash",
+    "/?min=18&all=1",
   ]) {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();

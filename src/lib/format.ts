@@ -15,3 +15,10 @@ export const STATUS_LABELS = {
   moved_out: "ย้ายออก",
   deceased: "เสียชีวิต",
 } as const;
+
+const thaiDateFormat = new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeZone: "UTC" });
+
+/** "2026-03-15" -> "15 มี.ค. 2569" (Buddhist era). */
+export function formatThaiDate(isoDate: string): string {
+  return thaiDateFormat.format(new Date(`${isoDate}T00:00:00Z`));
+}
