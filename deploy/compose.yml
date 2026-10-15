@@ -1,0 +1,86 @@
+# Production and staging on the home server. Each runs as its own Compose
+# project (chumchon-production, chumchon-staging) with its own .env, database
+# volume and Tailscale node. Started by deploy/remote.sh; see deploy/README.md.
+#
+# Nothing is published on the host: the only way in is the Tailscale Funnel
+# HTTPS address, and the database is reachable only on the project network.
+
+services:
+  db:
+    image: postgres:16.15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chumchon
+      POSTGRES_USER: chumchon_owner
+      POSTGRES_PASSWORD: ${OWNER_DB_PASSWORD:?}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chumchon_owner -d chumchon"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Applies pending migrations, then exits; the app waits for it. Also used
+  # for one-off scripts: `deploy/ctl.sh <env> run village:create ...`.
+  tools:
+    image: chumchon-tools:${APP_TAG:?}
+    environment: &db-urls
+      APP_ENV: ${APP_ENV:?}
+      DATABASE_URL: postgres://chumchon_app:${APP_DB_PASSWORD}@db:5432/chumchon
+      MIGRATION_DATABASE_URL: postgres://chumchon_owner:${OWNER_DB_PASSWORD}@db:5432/chumchon
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: chumchon-app:${APP_TAG:?}
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:?}
+      DATABASE_URL: postgres://chumchon_app:${APP_DB_PASSWORD}@db:5432/chumchon
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?}
+      # Filled in by remote.sh from the Tailscale address on the first deploy.
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
+      CLIENT_IP_HEADER: ${CLIENT_IP_HEADER:-x-forwarded-for}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/login || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    depends_on:
+      tools:
+        condition: service_completed_successfully
+
+  # Permanently removes records deleted more than 30 days ago (#11), daily.
+  purge:
+    image: chumchon-tools:${APP_TAG:?}
+    restart: unless-stopped
+    environment: *db-urls
+    command: ["sh", "-c", "while true; do node_modules/.bin/tsx scripts/purge-deleted.ts; sleep 86400; done"]
+    depends_on:
+      tools:
+        condition: service_completed_successfully
+
+  # HTTPS on https://<TS_HOSTNAME>.<tailnet>.ts.net, open to the internet
+  # through Tailscale Funnel (deploy/tailscale-serve.json).
+  tailscale:
+    image: tailscale/tailscale:v1.102.5
+    restart: unless-stopped
+    hostname: ${TS_HOSTNAME:?}
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_HOSTNAME: ${TS_HOSTNAME:?}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "true"
+      TS_SERVE_CONFIG: /config/serve.json
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - ./tailscale:/config:ro
+
+volumes:
+  db-data:
+  tailscale-state:

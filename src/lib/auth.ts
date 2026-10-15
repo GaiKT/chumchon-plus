@@ -78,9 +78,11 @@ export const auth = betterAuth({
   },
   advanced: {
     database: { generateId: "uuid" },
-    // The app is only reachable through Cloudflare Tunnel, which sets this
-    // header; without it every visitor would share the tunnel's address.
-    ipAddress: { ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"] },
+    // The app is only reachable through a tunnel (Tailscale Funnel or
+    // Cloudflare Tunnel); without its client IP header every visitor would
+    // share the tunnel's address. Trust only the header the tunnel in use
+    // sets: any other could be sent by the visitor to dodge rate limits.
+    ipAddress: { ipAddressHeaders: [process.env.CLIENT_IP_HEADER || "x-forwarded-for"] },
   },
   plugins: [username(), nextCookies()],
 });

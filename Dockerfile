@@ -6,6 +6,17 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
+# Migrations and CLI scripts (village:create, user:create, purge:deleted).
+# Commands call the binaries directly: corepack would try to download pnpm
+# at run time as the unprivileged user.
+FROM base AS tools
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+USER node
+CMD ["node_modules/.bin/drizzle-kit", "migrate"]
+
 FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

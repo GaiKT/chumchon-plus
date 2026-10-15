@@ -48,3 +48,7 @@ pnpm test:e2e    # Playwright; reuses whatever serves :3000, else starts `pnpm d
 ```
 
 Stop or rebuild the Docker `app` container before `pnpm test:e2e`, otherwise the tests run against its stale build.
+
+## Deploying
+
+See [deploy/README.md](deploy/README.md) (Thai): Docker Compose on the home server behind Tailscale Funnel, with `deploy/ctl.sh` for deploy, rollback and admin scripts.
