@@ -25,7 +25,7 @@ test("shows name, nickname, house number and age on the card", async ({ page }) 
   await page.getByLabel("ค้นหาลูกบ้าน").fill(resident.nickname);
   const card = results(page).getByRole("listitem");
   await expect(card).toContainText(`${resident.title}${resident.firstName} ${resident.lastName}`);
-  await expect(card).toContainText(`(${resident.nickname})`);
+  await expect(card).toContainText(`ชื่อเล่น ${resident.nickname}`);
   await expect(card).toContainText("บ้านเลขที่ 1");
   await expect(card).toContainText(/อายุ \d+ ปี/);
 });

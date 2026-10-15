@@ -57,7 +57,7 @@ test("keeps no resident data in browser storage", async ({ page }) => {
 test.describe("at 360px wide", () => {
   test.use({ viewport: { width: 360, height: 740 } });
 
-  test("pages fit without horizontal scrolling and buttons are easy to tap", async ({ page }) => {
+  test("pages fit without horizontal scrolling and controls are easy to tap", async ({ page }) => {
     await signIn(page, E2E.admin.username);
     const householdId = await householdIdOf(E2E.resident);
     const personId = await personIdOf(E2E.resident);
@@ -79,9 +79,14 @@ test.describe("at 360px wide", () => {
       );
       expect(overflow, `horizontal overflow on ${path}`).toBe(0);
 
-      for (const button of await page.locator("main button:visible").all()) {
-        const box = await button.boundingBox();
-        expect(box!.height, `button "${await button.textContent()}" on ${path}`).toBeGreaterThanOrEqual(44);
+      // Buttons, button-like links and form controls; links inside sentences are exempt.
+      const targets = page.locator(
+        ":is(header, main) :is(button, a, input:not([type=checkbox]), select):visible",
+      );
+      for (const target of await targets.all()) {
+        const box = await target.boundingBox();
+        const name = (await target.getAttribute("aria-label")) ?? (await target.textContent());
+        expect(box!.height, `"${name}" on ${path}`).toBeGreaterThanOrEqual(48);
       }
     }
   });

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getHouseholdForEdit } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
+import { PageShell } from "../../../app-bar";
 import { removeHousehold } from "../../../delete-actions";
 import { DeleteSection } from "../../../delete-section";
 import { saveHousehold } from "../../../edit-actions";
@@ -18,8 +19,8 @@ export default async function EditHouseholdPage({ params }: PageProps<"/househol
   if (!household) notFound();
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">แก้ไขข้อมูลบ้านเลขที่ {household.houseNo}</h1>
+    <PageShell back="กลับ">
+      <h1 className="text-heading font-bold">แก้ไขข้อมูลบ้านเลขที่ {household.houseNo}</h1>
       <HouseholdForm
         action={saveHousehold.bind(null, household.id)}
         initial={household}
@@ -31,6 +32,6 @@ export default async function EditHouseholdPage({ params }: PageProps<"/househol
         confirmText={household.houseNo}
         what="บ้านนี้"
       />
-    </main>
+    </PageShell>
   );
 }

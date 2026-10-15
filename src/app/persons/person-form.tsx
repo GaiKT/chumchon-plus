@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { fullName, STATUS_LABELS } from "@/lib/format";
 import { PERSON_STATUSES, toThaiDateInput } from "@/lib/resident-fields";
 import type { FormState } from "../edit-actions";
-import { ActionForm, FormActions, SelectField, TextField } from "../form-fields";
+import { Alert } from "@/components/ui/alert";
+import { ActionForm, FormActions, FormErrorSummary, SelectField, TextField } from "../form-fields";
 
 type Initial = {
   householdId: string;
@@ -66,7 +67,8 @@ export function PersonForm({
   const leaving = status !== "resident" || householdId !== initial.householdId;
 
   return (
-    <ActionForm action={formAction} className="flex flex-col gap-4">
+    <ActionForm action={formAction} result={state} className="flex flex-col gap-5">
+      <FormErrorSummary fieldErrors={state.fieldErrors} />
       <TextField name="title" label="คำนำหน้า" defaultValue={value("title")} errors={errors.title} />
       <TextField name="firstName" label="ชื่อ" defaultValue={value("firstName")} errors={errors.firstName} required />
       <TextField name="lastName" label="นามสกุล" defaultValue={value("lastName")} errors={errors.lastName} required />
@@ -110,10 +112,8 @@ export function PersonForm({
       )}
 
       {successors && leaving && successors.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
-          <p className="mb-2 text-amber-900">
-            บุคคลนี้เป็นหัวหน้าครัวเรือน กรุณาเลือกหัวหน้าครัวเรือนคนใหม่
-          </p>
+        <Alert variant="warning">
+          <p>บุคคลนี้เป็นหัวหน้าครัวเรือน กรุณาเลือกหัวหน้าครัวเรือนคนใหม่</p>
           <SelectField
             name="newHeadPersonId"
             label="หัวหน้าครัวเรือนคนใหม่"
@@ -124,7 +124,7 @@ export function PersonForm({
               ...successors.map((r) => ({ value: r.id, label: fullName(r) })),
             ]}
           />
-        </div>
+        </Alert>
       )}
 
       <FormActions pending={pending} cancelHref={cancelHref} />

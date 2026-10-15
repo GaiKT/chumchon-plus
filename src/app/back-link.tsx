@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 /**
@@ -12,8 +13,9 @@ export function BackLink({ children }: { children: React.ReactNode }) {
     <button
       type="button"
       onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
-      className="self-start py-2 text-blue-700 underline"
+      className="-ml-2 flex min-h-13 items-center gap-1 rounded-md px-2 font-bold text-white underline underline-offset-4"
     >
+      <ChevronLeft aria-hidden className="size-6 shrink-0" strokeWidth={2.5} />
       {children}
     </button>
   );

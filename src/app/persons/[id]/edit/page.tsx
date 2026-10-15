@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { fullName } from "@/lib/format";
 import { getPersonForEdit, listHouseholdOptions } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
+import { PageShell } from "../../../app-bar";
 import { removePerson } from "../../../delete-actions";
 import { DeleteSection } from "../../../delete-section";
 import { savePerson } from "../../../edit-actions";
@@ -21,8 +22,8 @@ export default async function EditPersonPage({ params }: PageProps<"/persons/[id
   const households = await listHouseholdOptions(user.villageId);
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">แก้ไขข้อมูล {fullName(person)}</h1>
+    <PageShell back="กลับ">
+      <h1 className="text-heading font-bold">แก้ไขข้อมูล {fullName(person)}</h1>
       <PersonForm
         action={savePerson.bind(null, person.id)}
         initial={person}
@@ -35,6 +36,6 @@ export default async function EditPersonPage({ params }: PageProps<"/persons/[id
         confirmText={`${person.firstName} ${person.lastName}`}
         what="บุคคลนี้"
       />
-    </main>
+    </PageShell>
   );
 }

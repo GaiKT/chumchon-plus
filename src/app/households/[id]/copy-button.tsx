@@ -1,6 +1,9 @@
 "use client";
 
+import { Check, CircleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 async function writeClipboard(text: string) {
   if (navigator.clipboard && window.isSecureContext) {
@@ -23,7 +26,7 @@ export function CopyButton({
   text,
   label,
   children,
-  className = "",
+  className,
 }: {
   text: string;
   /** Accessible name, e.g. "คัดลอกชื่อ-นามสกุล". */
@@ -35,14 +38,13 @@ export function CopyButton({
 
   useEffect(() => {
     if (status === "idle") return;
-    const timer = setTimeout(() => setStatus("idle"), 2000);
+    const timer = setTimeout(() => setStatus("idle"), 3000);
     return () => clearTimeout(timer);
   }, [status]);
 
   return (
     <>
-      <button
-        type="button"
+      <Button
         aria-label={label}
         onClick={() =>
           writeClipboard(text).then(
@@ -50,15 +52,20 @@ export function CopyButton({
             () => setStatus("failed"),
           )
         }
-        className={`min-h-11 min-w-11 shrink-0 rounded border border-gray-300 px-3 text-sm whitespace-nowrap text-gray-700 active:bg-gray-100 ${className}`}
+        className={cn("min-h-13 px-3", className)}
       >
         {children}
-      </button>
+      </Button>
       {status !== "idle" && (
         <div
           role="status"
-          className="fixed inset-x-0 bottom-6 z-10 mx-auto w-fit rounded-full bg-gray-900 px-4 py-2 text-white shadow-lg"
+          className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+24px)] z-50 mx-auto flex w-fit items-center gap-2 rounded-md border-2 border-white bg-foreground px-5 py-3 font-bold text-white"
         >
+          {status === "copied" ? (
+            <Check aria-hidden className="size-6" strokeWidth={3} />
+          ) : (
+            <CircleAlert aria-hidden className="size-6" strokeWidth={2.5} />
+          )}
           {status === "copied" ? "คัดลอกแล้ว" : "คัดลอกไม่สำเร็จ"}
         </div>
       )}

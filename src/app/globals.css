@@ -1,27 +1,77 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens: direction C "contrast สูง" (see design-system/MASTER.md).
+ * Tailwind's default colours and text sizes are removed, so components can
+ * only use these semantic tokens.
+ */
+@theme {
+  --color-*: initial;
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-white: #ffffff;
+  /* Main buttons and the app bar. White on it: 14.7:1. */
+  --color-primary: #172554;
+  --color-primary-pressed: #000000;
+  /* The selected person and the empty-house badge. */
+  --color-highlight: #fef08a;
+  --color-focus: #facc15;
+  /* Former members and pressed secondary buttons. */
+  --color-muted: #e5e7eb;
+  --color-danger: #b91c1c;
+  --color-danger-strong: #991b1b;
+  --color-danger-surface: #fee2e2;
+
+  /* 4px grid regardless of the root font size. */
+  --spacing: 4px;
+
+  --text-*: initial;
+  --text-caption: 0.9rem;
+  --text-caption--line-height: 1.6;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-title: 1.2rem;
+  --text-title--line-height: 1.4;
+  --text-heading: 1.4rem;
+  --text-heading--line-height: 1.35;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  --font-sans: var(--font-noto-sans-thai), system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
   /* Light only: the UI is designed and tested in one theme. */
   color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-noto-sans-thai), system-ui, sans-serif;
-}
-
 html {
-  /* Larger base size for older users reading on phones; rem-based spacing
-     scales with it, which also enlarges tap targets. */
-  font-size: 18px;
+  /* 20px for older users reading in sunlight, still following the
+     browser's own text size setting. */
+  font-size: 125%;
+  touch-action: manipulation;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
   line-height: 1.6;
+}
+
+/* Two-tone ring: yellow shows on the dark app bar, black on white pages. */
+:focus-visible {
+  outline: 4px solid var(--color-focus);
+  outline-offset: 0;
+  box-shadow: 0 0 0 6px var(--color-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

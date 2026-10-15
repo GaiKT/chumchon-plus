@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { fullName } from "@/lib/format";
 import type { FormState } from "../edit-actions";
-import { ActionForm, FormActions, SelectField, TextField } from "../form-fields";
+import { ActionForm, FormActions, FormErrorSummary, SelectField, TextField } from "../form-fields";
 
 type Initial = { houseNo: string; zone: string | null; note: string | null; headPersonId?: string | null };
 type Resident = { id: string; title: string | null; firstName: string; lastName: string };
@@ -25,7 +25,8 @@ export function HouseholdForm({
   const errors = state.fieldErrors ?? {};
 
   return (
-    <ActionForm action={formAction} className="flex flex-col gap-4">
+    <ActionForm action={formAction} result={state} className="flex flex-col gap-5">
+      <FormErrorSummary fieldErrors={state.fieldErrors} />
       <TextField
         name="houseNo"
         label="บ้านเลขที่"

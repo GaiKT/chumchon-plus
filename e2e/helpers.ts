@@ -8,3 +8,9 @@ export async function signIn(page: Page, username: string, password = E2E_PASSWO
   await page.getByRole("button", { name: "เข้าสู่ระบบ" }).click();
   if (password === E2E_PASSWORD) await expect(page).not.toHaveURL(/\/login$/);
 }
+
+/** Opens the account menu in the app bar. */
+export async function openMenu(page: Page) {
+  await page.getByRole("button", { name: "เมนู" }).click();
+  await expect(page.getByRole("menu")).toBeVisible();
+}

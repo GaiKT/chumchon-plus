@@ -8,10 +8,10 @@ test.beforeEach(async ({ page }) => {
 
 test("deletes a mistaken entry after typed confirmation, then restores it", async ({ page }) => {
   // A house of its own, so the restored entry does not affect other specs.
-  await page.getByRole("link", { name: "+ เพิ่มบ้าน" }).click();
+  await page.getByRole("link", { name: "เพิ่มบ้าน" }).click();
   await page.getByLabel("บ้านเลขที่").fill("77");
   await page.getByRole("button", { name: "บันทึก" }).click();
-  await page.getByRole("link", { name: "+ เพิ่มสมาชิก" }).click();
+  await page.getByRole("link", { name: "เพิ่มสมาชิก" }).click();
   await page.getByLabel("ชื่อ", { exact: true }).fill("กรอกซ้ำ");
   await page.getByLabel("นามสกุล").fill("ลบทิ้งได้");
   await page.getByRole("button", { name: "บันทึก" }).click();

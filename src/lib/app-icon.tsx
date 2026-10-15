@@ -1,9 +1,9 @@
 import { ImageResponse } from "next/og";
 
-export const THEME_COLOR = "#1d4ed8";
+export const THEME_COLOR = "#172554";
 
 /**
- * The app icon: a white house with a magnifying glass on brand blue.
+ * The app icon: a white house with a magnifying glass on brand navy.
  * Drawn as SVG so it needs no image files or fonts. `padding` leaves the
  * safe zone that maskable icons need (Android may crop to a circle).
  */

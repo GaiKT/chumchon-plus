@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function addMember(page: Page, firstName: string, lastName: string) {
-  await page.getByRole("link", { name: "+ เพิ่มสมาชิก" }).click();
+  await page.getByRole("link", { name: "เพิ่มสมาชิก" }).click();
   await page.getByLabel("ชื่อ", { exact: true }).fill(firstName);
   await page.getByLabel("นามสกุล").fill(lastName);
   await page.getByRole("button", { name: "บันทึก" }).click();
@@ -15,7 +15,7 @@ async function addMember(page: Page, firstName: string, lastName: string) {
 }
 
 test("adds a house and its members, hands over when the head dies", async ({ page }) => {
-  await page.getByRole("link", { name: "+ เพิ่มบ้าน" }).click();
+  await page.getByRole("link", { name: "เพิ่มบ้าน" }).click();
   await page.getByLabel("บ้านเลขที่").fill("1");
   await page.getByRole("button", { name: "บันทึก" }).click();
   await expect(page.getByText("บ้านเลขที่นี้มีอยู่ในระบบแล้ว")).toBeVisible();

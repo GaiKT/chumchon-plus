@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { fullName } from "@/lib/format";
 import { listDeleted, RESTORE_DAYS } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
-import { BackLink } from "../back-link";
+import { PageShell } from "../app-bar";
 import { undeleteHousehold, undeletePerson } from "../delete-actions";
 import { RestoreButton } from "./restore-button";
 
@@ -18,6 +18,18 @@ function daysLeft(deletedAt: Date | null) {
   return Math.max(0, RESTORE_DAYS - Math.floor((Date.now() - deletedAt.getTime()) / DAY_MS));
 }
 
+function DeletedItem({ title, detail, children }: { title: string; detail: string; children: React.ReactNode }) {
+  return (
+    <li className="flex flex-col gap-3 rounded-md border-2 border-foreground p-4">
+      <div>
+        <p className="text-title font-bold">{title}</p>
+        <p>{detail}</p>
+      </div>
+      {children}
+    </li>
+  );
+}
+
 export default async function TrashPage() {
   const user = await getVillageUser();
   if (!user) notFound();
@@ -25,48 +37,47 @@ export default async function TrashPage() {
   const empty = deleted.persons.length === 0 && deleted.households.length === 0;
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <BackLink>← กลับ</BackLink>
-      <h1 className="text-2xl font-semibold">รายการที่ถูกลบ</h1>
-      <p className="text-gray-700">กู้คืนได้ภายใน {RESTORE_DAYS} วันหลังลบ หลังจากนั้นข้อมูลจะถูกลบถาวร</p>
+    <PageShell back="กลับ">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-heading font-bold">รายการที่ถูกลบ</h1>
+        <p>กู้คืนได้ภายใน {RESTORE_DAYS} วันหลังลบ หลังจากนั้นข้อมูลจะถูกลบถาวร</p>
+      </div>
 
-      {empty && <p className="text-gray-600">ไม่มีรายการที่ถูกลบ</p>}
+      {empty && <p className="font-bold">ไม่มีรายการที่ถูกลบ</p>}
 
       {deleted.households.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">บ้าน</h2>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-title font-bold">บ้าน</h2>
           <ul aria-label="บ้านที่ถูกลบ" className="flex flex-col gap-3">
             {deleted.households.map((h) => (
-              <li key={h.id} className="flex items-start justify-between gap-2 rounded-lg border border-gray-200 p-4">
-                <div>
-                  <p className="font-medium">บ้านเลขที่ {h.houseNo}</p>
-                  <p className="text-sm text-gray-600">เหลือเวลากู้คืน {daysLeft(h.deletedAt)} วัน</p>
-                </div>
+              <DeletedItem
+                key={h.id}
+                title={`บ้านเลขที่ ${h.houseNo}`}
+                detail={`เหลือเวลากู้คืน ${daysLeft(h.deletedAt)} วัน`}
+              >
                 <RestoreButton action={undeleteHousehold.bind(null, h.id)} label={`กู้คืนบ้านเลขที่ ${h.houseNo}`} />
-              </li>
+              </DeletedItem>
             ))}
           </ul>
         </section>
       )}
 
       {deleted.persons.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">บุคคล</h2>
+        <section className="flex flex-col gap-3">
+          <h2 className="text-title font-bold">บุคคล</h2>
           <ul aria-label="บุคคลที่ถูกลบ" className="flex flex-col gap-3">
             {deleted.persons.map((p) => (
-              <li key={p.id} className="flex items-start justify-between gap-2 rounded-lg border border-gray-200 p-4">
-                <div>
-                  <p className="font-medium">{fullName(p)}</p>
-                  <p className="text-sm text-gray-600">
-                    บ้านเลขที่ {p.houseNo} · เหลือเวลากู้คืน {daysLeft(p.deletedAt)} วัน
-                  </p>
-                </div>
+              <DeletedItem
+                key={p.id}
+                title={fullName(p)}
+                detail={`บ้านเลขที่ ${p.houseNo} · เหลือเวลากู้คืน ${daysLeft(p.deletedAt)} วัน`}
+              >
                 <RestoreButton action={undeletePerson.bind(null, p.id)} label={`กู้คืน ${fullName(p)}`} />
-              </li>
+              </DeletedItem>
             ))}
           </ul>
         </section>
       )}
-    </main>
+    </PageShell>
   );
 }

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { E2E } from "./fixtures";
-import { signIn } from "./helpers";
+import { openMenu, signIn } from "./helpers";
 
 test("signs out a lost phone from another device", async ({ page, browser }) => {
   // The "lost phone": a second browser signed in as the same admin.
@@ -10,7 +10,8 @@ test("signs out a lost phone from another device", async ({ page, browser }) => 
   await expect(lostPhone.getByLabel("ค้นหาลูกบ้าน")).toBeVisible();
 
   await signIn(page, E2E.admin.username);
-  await page.getByRole("link", { name: "อุปกรณ์" }).click();
+  await openMenu(page);
+  await page.getByRole("menuitem", { name: "อุปกรณ์ที่เข้าสู่ระบบ" }).click();
   const account = page.getByRole("region", { name: `บัญชี ${E2E.admin.name}` });
   await expect(account).toContainText("อุปกรณ์นี้");
 

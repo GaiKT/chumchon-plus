@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getHouseholdForEdit } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
+import { PageShell } from "../../../../app-bar";
 import { addPerson } from "../../../../edit-actions";
 import { EMPTY_PERSON, PersonForm } from "../../../../persons/person-form";
 
@@ -16,13 +17,13 @@ export default async function NewMemberPage({ params }: PageProps<"/households/[
   if (!household) notFound();
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">เพิ่มสมาชิกบ้านเลขที่ {household.houseNo}</h1>
+    <PageShell back="กลับ">
+      <h1 className="text-heading font-bold">เพิ่มสมาชิกบ้านเลขที่ {household.houseNo}</h1>
       <PersonForm
         action={addPerson.bind(null, household.id)}
         initial={{ ...EMPTY_PERSON, householdId: household.id }}
         cancelHref={`/households/${household.id}`}
       />
-    </main>
+    </PageShell>
   );
 }

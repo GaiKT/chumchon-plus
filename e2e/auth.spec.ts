@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { E2E } from "./fixtures";
-import { signIn } from "./helpers";
+import { openMenu, signIn } from "./helpers";
 
 test("visitors without a session are sent to the login page", async ({ page }) => {
   await page.goto("/");
@@ -17,9 +17,10 @@ test("an admin can sign in and sign out", async ({ page }) => {
   await signIn(page, E2E.admin.username);
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByText(E2E.admin.name)).toBeVisible();
+  await openMenu(page);
+  await expect(page.getByRole("menu")).toContainText(E2E.admin.name);
 
-  await page.getByRole("button", { name: "ออกจากระบบ" }).click();
+  await page.getByRole("menuitem", { name: "ออกจากระบบ" }).click();
   await expect(page).toHaveURL(/\/login$/);
 
   await page.goto("/");
