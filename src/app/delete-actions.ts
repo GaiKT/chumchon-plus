@@ -1,7 +1,7 @@
 "use server";
 
-import { notFound, redirect } from "next/navigation";
-import { refresh } from "next/cache";
+import { notFound } from "next/navigation";
+import { refresh, revalidatePath } from "next/cache";
 import {
   deleteHousehold,
   deletePerson,
@@ -9,6 +9,7 @@ import {
   restorePerson,
 } from "@/lib/resident-edits";
 import { getVillageUser } from "@/lib/session";
+import { showAfterChange } from "./show-after-change";
 
 export type DeleteState = { error?: string };
 export type RestoreState = { error?: string };
@@ -18,6 +19,7 @@ async function requireActor() {
   if (!user) notFound();
   return { id: user.id, villageId: user.villageId };
 }
+
 
 const WRONG_CONFIRMATION = "ข้อความยืนยันไม่ตรงกัน กรุณาพิมพ์ให้ตรงตามที่แสดง";
 
@@ -30,7 +32,7 @@ export async function removePerson(
   const result = await deletePerson(await requireActor(), id, String(formData.get("confirmation") ?? ""));
   if (result === "notFound") notFound();
   if (result === "wrongConfirmation") return { error: WRONG_CONFIRMATION };
-  redirect(`/households/${householdId}`);
+  showAfterChange(`/households/${householdId}`);
 }
 
 export async function removeHousehold(id: string, _prev: DeleteState, formData: FormData): Promise<DeleteState> {
@@ -40,12 +42,13 @@ export async function removeHousehold(id: string, _prev: DeleteState, formData: 
   if (result === "hasResidents") {
     return { error: "ยังมีผู้อาศัยอยู่ในบ้านนี้ กรุณาย้ายหรือลบสมาชิกก่อน" };
   }
-  redirect("/");
+  showAfterChange("/");
 }
 
 export async function undeletePerson(id: string): Promise<RestoreState> {
   const result = await restorePerson(await requireActor(), id);
   if (result === "householdDeleted") return { error: "บ้านของบุคคลนี้ถูกลบอยู่ กรุณากู้คืนบ้านก่อน" };
+  revalidatePath("/", "layout");
   refresh();
   return {};
 }
@@ -53,6 +56,7 @@ export async function undeletePerson(id: string): Promise<RestoreState> {
 export async function undeleteHousehold(id: string): Promise<RestoreState> {
   const result = await restoreHousehold(await requireActor(), id);
   if (result === "duplicateHouseNo") return { error: "มีบ้านเลขที่นี้อยู่ในระบบแล้ว จึงกู้คืนไม่ได้" };
+  revalidatePath("/", "layout");
   refresh();
   return {};
 }

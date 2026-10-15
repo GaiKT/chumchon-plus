@@ -94,7 +94,7 @@ function MemberCard({
         <Link
           href={`/persons/${member.id}/edit`}
           aria-label={`แก้ไขข้อมูล ${fullName(member)}`}
-          className={buttonVariants({ className: "min-h-13" })}
+          className={cn(buttonVariants(), "min-h-13")}
         >
           <Pencil aria-hidden strokeWidth={2.5} />
           แก้ไข

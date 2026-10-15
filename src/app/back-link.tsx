@@ -13,7 +13,7 @@ export function BackLink({ children }: { children: React.ReactNode }) {
     <button
       type="button"
       onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
-      className="-ml-2 flex min-h-13 items-center gap-1 rounded-md px-2 font-bold text-white underline underline-offset-4"
+      className="-my-2 -ml-2 flex min-h-12 items-center gap-1 self-start rounded-md px-2 font-bold underline underline-offset-4"
     >
       <ChevronLeft aria-hidden className="size-6 shrink-0" strokeWidth={2.5} />
       {children}

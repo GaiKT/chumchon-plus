@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { fullName } from "@/lib/format";
 import type { FormState } from "../edit-actions";
-import { ActionForm, FormActions, FormErrorSummary, SelectField, TextField } from "../form-fields";
+import { ActionForm, ChoiceField, FormActions, FormErrorSummary, SelectField, TextField } from "../form-fields";
 
 type Initial = { houseNo: string; zone: string | null; note: string | null; headPersonId?: string | null };
 type Resident = { id: string; title: string | null; firstName: string; lastName: string };
@@ -13,11 +13,14 @@ export function HouseholdForm({
   action,
   initial,
   residents = [],
+  zones = [],
   cancelHref,
 }: {
   action: (state: FormState, formData: FormData) => Promise<FormState>;
   initial: Initial;
   residents?: Resident[];
+  /** Zones already used in the village, offered as choices. */
+  zones?: string[];
   cancelHref: string;
 }) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(action, {});
@@ -35,7 +38,17 @@ export function HouseholdForm({
         errors={errors.houseNo}
         required
       />
-      <TextField name="zone" label="คุ้ม/ซอย" defaultValue={value("zone")} errors={errors.zone} />
+      {zones.length > 0 ? (
+        <ChoiceField
+          name="zone"
+          label="คุ้ม/ซอย"
+          choices={zones.map((z) => ({ value: z }))}
+          defaultValue={value("zone")}
+          errors={errors.zone}
+        />
+      ) : (
+        <TextField name="zone" label="คุ้ม/ซอย" defaultValue={value("zone")} errors={errors.zone} />
+      )}
       <TextField name="note" label="หมายเหตุ" defaultValue={value("note")} errors={errors.note} />
       {residents.length > 0 && (
         <SelectField

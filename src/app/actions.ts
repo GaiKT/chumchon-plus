@@ -2,7 +2,7 @@
 
 import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { auth } from "@/lib/auth";
 
 export type SignInState = { error?: string };
@@ -25,10 +25,10 @@ export async function signIn(_prev: SignInState, formData: FormData): Promise<Si
     }
     throw err;
   }
-  redirect("/");
+  redirect("/", RedirectType.replace);
 }
 
 export async function signOut() {
   await auth.api.signOut({ headers: await headers() });
-  redirect("/login");
+  redirect("/login", RedirectType.replace);
 }

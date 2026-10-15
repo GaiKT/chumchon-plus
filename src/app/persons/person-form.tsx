@@ -2,10 +2,18 @@
 
 import { useActionState, useState } from "react";
 import { fullName, STATUS_LABELS } from "@/lib/format";
-import { PERSON_STATUSES, toThaiDateInput } from "@/lib/resident-fields";
+import { HEAD_RELATION, PERSON_STATUSES, toThaiDateInput } from "@/lib/resident-fields";
 import type { FormState } from "../edit-actions";
 import { Alert } from "@/components/ui/alert";
-import { ActionForm, FormActions, FormErrorSummary, SelectField, TextField } from "../form-fields";
+import {
+  ActionForm,
+  BirthDateField,
+  ChoiceField,
+  FormActions,
+  FormErrorSummary,
+  SelectField,
+  TextField,
+} from "../form-fields";
 
 type Initial = {
   householdId: string;
@@ -22,6 +30,19 @@ type Initial = {
 
 type Option = { id: string; houseNo: string };
 type Resident = { id: string; title: string | null; firstName: string; lastName: string };
+
+// Abbreviations for children, as in the house registration and imported data.
+const TITLES = [
+  { value: "นาย" },
+  { value: "นาง" },
+  { value: "นางสาว" },
+  { value: "ด.ช.", label: "ด.ช. (เด็กชาย)" },
+  { value: "ด.ญ.", label: "ด.ญ. (เด็กหญิง)" },
+];
+
+const RELATIONS = [HEAD_RELATION, "คู่สมรส", "บุตร", "หลาน", "บิดา", "มารดา", "พี่น้อง", "ญาติ", "ผู้อาศัย"].map(
+  (value) => ({ value }),
+);
 
 export const EMPTY_PERSON: Omit<Initial, "householdId"> = {
   title: null,
@@ -69,24 +90,18 @@ export function PersonForm({
   return (
     <ActionForm action={formAction} result={state} className="flex flex-col gap-5">
       <FormErrorSummary fieldErrors={state.fieldErrors} />
-      <TextField name="title" label="คำนำหน้า" defaultValue={value("title")} errors={errors.title} />
+      <ChoiceField name="title" label="คำนำหน้า" choices={TITLES} defaultValue={value("title")} errors={errors.title} />
       <TextField name="firstName" label="ชื่อ" defaultValue={value("firstName")} errors={errors.firstName} required />
       <TextField name="lastName" label="นามสกุล" defaultValue={value("lastName")} errors={errors.lastName} required />
       <TextField name="nickname" label="ชื่อเล่น" defaultValue={value("nickname")} errors={errors.nickname} />
-      <TextField
+      <ChoiceField
         name="relationToHead"
         label="ความสัมพันธ์กับหัวหน้าครัวเรือน"
+        choices={RELATIONS}
         defaultValue={value("relationToHead")}
         errors={errors.relationToHead}
       />
-      <TextField
-        name="birthDate"
-        label="วันเกิด"
-        hint="วว/ดด/ปปปป (พ.ศ.) เช่น 15/03/2515"
-        defaultValue={value("birthDate")}
-        errors={errors.birthDate}
-        inputMode="numeric"
-      />
+      <BirthDateField name="birthDate" label="วันเกิด" defaultValue={value("birthDate")} errors={errors.birthDate} />
       <TextField name="phone" label="เบอร์โทร" type="tel" defaultValue={value("phone")} errors={errors.phone} />
       <TextField name="note" label="หมายเหตุ" defaultValue={value("note")} errors={errors.note} />
 

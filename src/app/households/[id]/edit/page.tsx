@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getHouseholdForEdit } from "@/lib/resident-edits";
+import { listZones } from "@/lib/residents";
 import { getVillageUser } from "@/lib/session";
 import { PageShell } from "../../../app-bar";
 import { removeHousehold } from "../../../delete-actions";
@@ -17,14 +18,18 @@ export default async function EditHouseholdPage({ params }: PageProps<"/househol
   if (!user) notFound();
   const household = await getHouseholdForEdit(user.villageId, (await params).id);
   if (!household) notFound();
+  const zones = await listZones(user.villageId);
 
   return (
     <PageShell back="ย้อนกลับ">
       <h1 className="text-heading font-bold">แก้ไขข้อมูลบ้านเลขที่ {household.houseNo}</h1>
       <HouseholdForm
+        // Resets the form when the saved data changed (see the person edit page).
+        key={JSON.stringify(household)}
         action={saveHousehold.bind(null, household.id)}
         initial={household}
         residents={household.residents}
+        zones={zones}
         cancelHref={`/households/${household.id}`}
       />
       <DeleteSection

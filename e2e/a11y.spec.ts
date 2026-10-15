@@ -32,6 +32,7 @@ test("signed-in pages have no accessibility problems", async ({ page }) => {
     "/devices",
     "/trash",
     "/?min=18&all=1",
+    "/changes",
   ]) {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
@@ -45,7 +46,7 @@ test("the open menu and a rejected form have no accessibility problems", async (
   await expectNoViolations(page, "the account menu");
 
   await page.goto(`/persons/${await personIdOf(E2E.resident)}/edit`);
-  await page.getByLabel("วันเกิด").fill("31/02/2520");
+  await page.getByLabel("เบอร์โทร", { exact: true }).fill("12345");
   await page.getByRole("button", { name: "บันทึก" }).click();
   await expect(page.getByText("บันทึกไม่สำเร็จ")).toBeVisible();
   await expectNoViolations(page, "the person form with an error");

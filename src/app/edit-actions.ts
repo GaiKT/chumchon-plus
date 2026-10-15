@@ -1,6 +1,6 @@
 "use server";
 
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { z } from "zod";
 import {
   createHousehold,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/resident-edits";
 import { householdFormSchema, newHeadSchema, personFormSchema } from "@/lib/resident-fields";
 import { getVillageUser } from "@/lib/session";
+import { showAfterChange } from "./show-after-change";
 
 export type FormState = {
   fieldErrors?: Record<string, string[] | undefined>;
@@ -30,6 +31,7 @@ async function requireActor() {
   return { id: user.id, villageId: user.villageId };
 }
 
+
 const DUPLICATE_HOUSE_NO = { houseNo: ["บ้านเลขที่นี้มีอยู่ในระบบแล้ว"] };
 
 export async function addHousehold(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -40,7 +42,7 @@ export async function addHousehold(_prev: FormState, formData: FormData): Promis
 
   const result = await createHousehold(actor, parsed.data);
   if (result === "duplicateHouseNo") return { fieldErrors: DUPLICATE_HOUSE_NO, values };
-  redirect(`/households/${result.id}`);
+  showAfterChange(`/households/${result.id}`);
 }
 
 export async function saveHousehold(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -55,7 +57,7 @@ export async function saveHousehold(id: string, _prev: FormState, formData: Form
   if (result === "invalidHead") {
     return { fieldErrors: { headPersonId: ["หัวหน้าครัวเรือนต้องเป็นสมาชิกที่อาศัยอยู่ในบ้านนี้"] }, values };
   }
-  redirect(`/households/${id}`);
+  showAfterChange(`/households/${id}`);
 }
 
 export async function addPerson(householdId: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -66,7 +68,7 @@ export async function addPerson(householdId: string, _prev: FormState, formData:
 
   const result = await createPerson(actor, parsed.data);
   if (result === "householdNotFound") notFound();
-  redirect(`/households/${householdId}?person=${result.id}`);
+  showAfterChange(`/households/${householdId}?person=${result.id}`);
 }
 
 export async function savePerson(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -95,5 +97,5 @@ export async function savePerson(id: string, _prev: FormState, formData: FormDat
       values,
     };
   }
-  redirect(`/households/${parsed.data.householdId}?person=${id}`);
+  showAfterChange(`/households/${parsed.data.householdId}?person=${id}`);
 }

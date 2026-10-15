@@ -25,6 +25,9 @@ export default async function EditPersonPage({ params }: PageProps<"/persons/[id
     <PageShell back="ย้อนกลับ">
       <h1 className="text-heading font-bold">แก้ไขข้อมูล {fullName(person)}</h1>
       <PersonForm
+        // Next keeps visited pages mounted; a new key resets the form's
+        // state when the saved data has changed since it was last shown.
+        key={JSON.stringify(person)}
         action={savePerson.bind(null, person.id)}
         initial={person}
         households={households}
