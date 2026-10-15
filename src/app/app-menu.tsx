@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Menu, Smartphone, Trash2 } from "lucide-react";
+import { History, LogOut, Menu, Smartphone, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTransition } from "react";
 import { buttonVariants } from "@/components/ui/button";
@@ -31,6 +31,12 @@ export function AppMenu({ name, role }: { name: string; role: "admin" | "superad
         </DropdownMenuLabel>
         {role === "admin" && (
           <>
+            <DropdownMenuItem asChild>
+              <Link href="/changes">
+                <History strokeWidth={2.5} />
+                ความเปลี่ยนแปลงรายเดือน
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/devices">
                 <Smartphone strokeWidth={2.5} />

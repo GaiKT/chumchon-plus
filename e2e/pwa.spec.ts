@@ -72,6 +72,7 @@ test.describe("at 360px wide", () => {
       "/devices",
       "/trash",
       "/?min=18&all=1",
+      "/changes",
     ]) {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
