@@ -59,7 +59,7 @@ export function DeleteSection({
               variant="danger"
               disabled={pending || typed.trim() !== confirmText}
             >
-              {pending ? "กำลังลบ..." : "ยืนยันการลบ"}
+              {pending ? "กำลังลบข้อมูล..." : "ยืนยันการลบข้อมูล"}
             </Button>
             <Button
               onClick={() => {

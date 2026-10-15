@@ -13,7 +13,7 @@ export default async function NewHouseholdPage() {
   if (!(await getVillageUser())) notFound();
 
   return (
-    <PageShell back="กลับ">
+    <PageShell back="ย้อนกลับ">
       <h1 className="text-heading font-bold">เพิ่มบ้าน</h1>
       <HouseholdForm
         action={addHousehold}

@@ -195,7 +195,7 @@ export function FormActions({ pending, cancelHref }: { pending: boolean; cancelH
         disabled={pending}
         className={buttonVariants({ variant: "primary", size: "large" })}
       >
-        {pending ? "กำลังบันทึก..." : "บันทึก"}
+        {pending ? "กำลังบันทึกข้อมูล..." : "บันทึกข้อมูล"}
       </button>
       <Link href={cancelHref} className={buttonVariants({ variant: "secondary" })}>
         ยกเลิก

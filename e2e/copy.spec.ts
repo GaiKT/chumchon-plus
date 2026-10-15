@@ -18,7 +18,7 @@ function clipboard(page: import("@playwright/test").Page) {
 
 test("copies single fields and confirms with a toast", async ({ page }) => {
   await page.getByRole("button", { name: `คัดลอกชื่อ ${name}` }).click();
-  await expect(page.getByRole("status")).toHaveText("คัดลอกแล้ว");
+  await expect(page.getByRole("status")).toHaveText("คัดลอกเรียบร้อยแล้ว");
   expect(await clipboard(page)).toBe(name);
 
   await page.getByRole("button", { name: "คัดลอกบ้านเลขที่ 1" }).click();

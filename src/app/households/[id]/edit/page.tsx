@@ -19,7 +19,7 @@ export default async function EditHouseholdPage({ params }: PageProps<"/househol
   if (!household) notFound();
 
   return (
-    <PageShell back="กลับ">
+    <PageShell back="ย้อนกลับ">
       <h1 className="text-heading font-bold">แก้ไขข้อมูลบ้านเลขที่ {household.houseNo}</h1>
       <HouseholdForm
         action={saveHousehold.bind(null, household.id)}

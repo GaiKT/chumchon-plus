@@ -27,10 +27,10 @@ export default async function DevicesPage() {
   const accounts = await listVillageAccounts(user.villageId);
 
   return (
-    <PageShell back="กลับ">
+    <PageShell back="ย้อนกลับ">
       <div className="flex flex-col gap-2">
         <h1 className="text-heading font-bold">อุปกรณ์ที่เข้าสู่ระบบ</h1>
-        <p>หากโทรศัพท์หายหรือมีผู้อื่นใช้งาน ให้กด &quot;ออกจากระบบ&quot; ที่อุปกรณ์นั้นทันที</p>
+        <p>หากโทรศัพท์หายหรือมีผู้อื่นใช้งาน ให้แตะ &quot;ออกจากระบบ&quot; ที่อุปกรณ์นั้นทันที</p>
       </div>
 
       {accounts.map((account) => {
@@ -44,10 +44,10 @@ export default async function DevicesPage() {
             <div className="flex flex-col gap-1">
               <h2 className="text-title font-bold">
                 {account.name}
-                {isSelf && <span className="font-normal"> (คุณ)</span>}
+                {isSelf && <span className="font-normal"> (บัญชีที่ใช้อยู่)</span>}
               </h2>
               <p>ชื่อผู้ใช้ {account.username}</p>
-              {account.disabledAt && <Badge variant="danger">ปิดใช้งานแล้ว</Badge>}
+              {account.disabledAt && <Badge variant="danger">ปิดการใช้งานแล้ว</Badge>}
             </div>
 
             {account.sessions.length === 0 ? (
@@ -100,10 +100,10 @@ export default async function DevicesPage() {
                   <form action={setAccountDisabled.bind(null, account.id, !account.disabledAt)}>
                     <button
                       type="submit"
-                      aria-label={`${account.disabledAt ? "เปิดใช้งาน" : "ปิดใช้งาน"}บัญชี ${account.name}`}
+                      aria-label={`${account.disabledAt ? "เปิดใช้งาน" : "ปิดการใช้งาน"}บัญชี ${account.name}`}
                       className={cn(actionButton, !account.disabledAt && "border-danger text-danger-strong")}
                     >
-                      {account.disabledAt ? "เปิดใช้งานบัญชี" : "ปิดใช้งานบัญชี"}
+                      {account.disabledAt ? "เปิดใช้งานบัญชี" : "ปิดการใช้งานบัญชี"}
                     </button>
                   </form>
                 )}

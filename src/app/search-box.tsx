@@ -65,7 +65,7 @@ export function SearchBox() {
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="ชื่อ ชื่อเล่น หรือบ้านเลขที่"
+          placeholder="กรอกชื่อ ชื่อเล่น หรือบ้านเลขที่"
           autoComplete="off"
           enterKeyHint="search"
           className={inputClass}
@@ -115,7 +115,7 @@ export function SearchBoxFallback() {
           id={SEARCH_INPUT_ID}
           type="search"
           disabled
-          placeholder="ชื่อ ชื่อเล่น หรือบ้านเลขที่"
+          placeholder="กรอกชื่อ ชื่อเล่น หรือบ้านเลขที่"
           className={inputClass}
         />
       </div>

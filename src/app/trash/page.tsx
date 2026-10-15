@@ -37,10 +37,10 @@ export default async function TrashPage() {
   const empty = deleted.persons.length === 0 && deleted.households.length === 0;
 
   return (
-    <PageShell back="กลับ">
+    <PageShell back="ย้อนกลับ">
       <div className="flex flex-col gap-2">
         <h1 className="text-heading font-bold">รายการที่ถูกลบ</h1>
-        <p>กู้คืนได้ภายใน {RESTORE_DAYS} วันหลังลบ หลังจากนั้นข้อมูลจะถูกลบถาวร</p>
+        <p>กู้คืนได้ภายใน {RESTORE_DAYS} วันหลังลบข้อมูล หลังจากนั้นข้อมูลจะถูกลบถาวร</p>
       </div>
 
       {empty && <p className="font-bold">ไม่มีรายการที่ถูกลบ</p>}

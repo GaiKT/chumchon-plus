@@ -22,7 +22,7 @@ export default async function EditPersonPage({ params }: PageProps<"/persons/[id
   const households = await listHouseholdOptions(user.villageId);
 
   return (
-    <PageShell back="กลับ">
+    <PageShell back="ย้อนกลับ">
       <h1 className="text-heading font-bold">แก้ไขข้อมูล {fullName(person)}</h1>
       <PersonForm
         action={savePerson.bind(null, person.id)}

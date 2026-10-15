@@ -17,7 +17,7 @@ export default async function NewMemberPage({ params }: PageProps<"/households/[
   if (!household) notFound();
 
   return (
-    <PageShell back="กลับ">
+    <PageShell back="ย้อนกลับ">
       <h1 className="text-heading font-bold">เพิ่มสมาชิกบ้านเลขที่ {household.houseNo}</h1>
       <PersonForm
         action={addPerson.bind(null, household.id)}

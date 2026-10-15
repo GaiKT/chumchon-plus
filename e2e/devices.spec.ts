@@ -32,5 +32,5 @@ test("does not offer to disable your own account", async ({ page }) => {
   await signIn(page, E2E.admin.username);
   await page.goto("/devices");
   const account = page.getByRole("region", { name: `บัญชี ${E2E.admin.name}` });
-  await expect(account.getByRole("button", { name: /ปิดใช้งานบัญชี/ })).toHaveCount(0);
+  await expect(account.getByRole("button", { name: /ปิดการใช้งานบัญชี/ })).toHaveCount(0);
 });

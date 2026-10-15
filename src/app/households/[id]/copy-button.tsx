@@ -66,7 +66,7 @@ export function CopyButton({
           ) : (
             <CircleAlert aria-hidden className="size-6" strokeWidth={2.5} />
           )}
-          {status === "copied" ? "คัดลอกแล้ว" : "คัดลอกไม่สำเร็จ"}
+          {status === "copied" ? "คัดลอกเรียบร้อยแล้ว" : "เกิดข้อผิดพลาด คัดลอกไม่สำเร็จ"}
         </div>
       )}
     </>

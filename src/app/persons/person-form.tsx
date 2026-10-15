@@ -120,7 +120,7 @@ export function PersonForm({
             defaultValue={state.values?.newHeadPersonId ?? ""}
             errors={errors.newHeadPersonId}
             options={[
-              { value: "", label: "เลือก..." },
+              { value: "", label: "โปรดเลือก" },
               ...successors.map((r) => ({ value: r.id, label: fullName(r) })),
             ]}
           />
